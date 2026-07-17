@@ -1,0 +1,6 @@
+"Reference","Value","Footprint","Qty","LCSC Part #"
+"R1,R2,R3","10k","Resistor_SMD:R_0603_1608Metric","3","C25804"
+"C1, C2","100nF","Capacitor_SMD:C_0603_1608Metric","2",""
+"U1","NE555DR","Package_SO:SOIC-8_3.9x4.9mm_P1.27mm","1","C7593"
+"D1","LED, red","LED_SMD:LED_0603_1608Metric","1",""
+"R4","4k7 1%","Resistor_SMD:R_0603_1608Metric","1","25804"

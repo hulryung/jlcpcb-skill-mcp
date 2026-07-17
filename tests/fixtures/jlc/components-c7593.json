@@ -1,0 +1,16 @@
+{
+ "components": [
+  {
+   "lcsc": 7593,
+   "mfr": "NE555DR",
+   "package": "SOIC-8",
+   "description": "",
+   "stock": 322212,
+   "price": "[{\"qFrom\": 1, \"qTo\": 49, \"price\": 0.091}, {\"qFrom\": 50, \"qTo\": 149, \"price\": 0.071857143}, {\"qFrom\": 150, \"qTo\": 499, \"price\": 0.062}, {\"qFrom\": 500, \"qTo\": 2499, \"price\": 0.053714286}, {\"qFrom\": 2500, \"qTo\": 4999, \"price\": 0.051}, {\"qFrom\": 5000, \"qTo\": null, \"price\": 0.049}]",
+   "category": "Clock and Timing",
+   "subcategory": "Timers / Clock Oscillators",
+   "is_basic": false,
+   "is_preferred": true
+  }
+ ]
+}

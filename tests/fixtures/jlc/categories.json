@@ -1,0 +1,28 @@
+{
+ "categories": [
+  {
+   "category": "ADC/DAC/Data Conversion",
+   "subcategory": "ADC/DAC - Specialized"
+  },
+  {
+   "category": "Amplifiers",
+   "subcategory": ""
+  },
+  {
+   "category": "Amplifiers/Comparators",
+   "subcategory": "Audio Amplifiers"
+  },
+  {
+   "category": "Analog ICs",
+   "subcategory": "Analog Switches"
+  },
+  {
+   "category": "Audio Components/Vibration Motors",
+   "subcategory": "Buzzers"
+  },
+  {
+   "category": "Audio Products / Vibration Motors",
+   "subcategory": "Buzzers"
+  }
+ ]
+}

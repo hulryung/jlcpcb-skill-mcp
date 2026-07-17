@@ -1,0 +1,16 @@
+{
+ "components": [
+  {
+   "lcsc": 25804,
+   "mfr": "0603WAF1002T5E",
+   "package": "0603",
+   "description": "",
+   "stock": 37165617,
+   "price": "[{\"qFrom\": 20, \"qTo\": 19980, \"price\": 0.000842857}, {\"qFrom\": 20000, \"qTo\": 99980, \"price\": 0.000642857}, {\"qFrom\": 100000, \"qTo\": 199980, \"price\": 0.000542857}, {\"qFrom\": 200000, \"qTo\": 999980, \"price\": 0.000485714}, {\"qFrom\": 1000000, \"qTo\": 1003980, \"price\": 0.000442857}, {\"qFrom\": 1004000, \"qTo\": null, \"price\": 0.000442857}]",
+   "category": "Resistors",
+   "subcategory": "Chip Resistor - Surface Mount",
+   "is_basic": true,
+   "is_preferred": false
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "components": [
+  {
+   "lcsc": 7593,
+   "mfr": "NE555DR",
+   "package": "SOIC-8",
+   "is_basic": false,
+   "is_preferred": true,
+   "description": "",
+   "stock": 322212,
+   "price": 0.091
+  },
+  {
+   "lcsc": 695838,
+   "mfr": "NE555DR",
+   "package": "SOP-8",
+   "is_basic": false,
+   "is_preferred": false,
+   "description": "",
+   "stock": 245832,
+   "price": 0.048857143
+  },
+  {
+   "lcsc": 5125085,
+   "mfr": "NE555",
+   "package": "SOP-8",
+   "is_basic": false,
+   "is_preferred": false,
+   "description": "",
+   "stock": 37099,
+   "price": 0.048857143
+  },
+  {
+   "lcsc": 18723595,
+   "mfr": "NE555DTR(XBLW)",
+   "package": "SOP-8",
+   "is_basic": false,
+   "is_preferred": false,
+   "description": "",
+   "stock": 30879,
+   "price": 0.031714286
+  }
+ ]
+}

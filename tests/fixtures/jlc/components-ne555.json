@@ -1,0 +1,52 @@
+{
+ "components": [
+  {
+   "lcsc": 7593,
+   "mfr": "NE555DR",
+   "package": "SOIC-8",
+   "description": "",
+   "stock": 322212,
+   "price": "[{\"qFrom\": 1, \"qTo\": 49, \"price\": 0.091}, {\"qFrom\": 50, \"qTo\": 149, \"price\": 0.071857143}, {\"qFrom\": 150, \"qTo\": 499, \"price\": 0.062}, {\"qFrom\": 500, \"qTo\": 2499, \"price\": 0.053714286}, {\"qFrom\": 2500, \"qTo\": 4999, \"price\": 0.051}, {\"qFrom\": 5000, \"qTo\": null, \"price\": 0.049}]",
+   "category": "Clock and Timing",
+   "subcategory": "Timers / Clock Oscillators",
+   "is_basic": false,
+   "is_preferred": true
+  },
+  {
+   "lcsc": 5125085,
+   "mfr": "NE555",
+   "package": "SOP-8",
+   "description": "",
+   "stock": 37099,
+   "price": "[{\"qFrom\": 1, \"qTo\": 99, \"price\": 0.048857143}, {\"qFrom\": 100, \"qTo\": 299, \"price\": 0.038571429}, {\"qFrom\": 300, \"qTo\": 2499, \"price\": 0.033428571}, {\"qFrom\": 2500, \"qTo\": 4999, \"price\": 0.029571429}, {\"qFrom\": 5000, \"qTo\": 9999, \"price\": 0.026571429}, {\"qFrom\": 10000, \"qTo\": null, \"price\": 0.025}]",
+   "category": "RTC/Clock Chip",
+   "subcategory": "Timers / Clock Oscillators",
+   "is_basic": false,
+   "is_preferred": false
+  },
+  {
+   "lcsc": 18723595,
+   "mfr": "NE555DTR(XBLW)",
+   "package": "SOP-8",
+   "description": "",
+   "stock": 30879,
+   "price": "[{\"qFrom\": 1, \"qTo\": 99, \"price\": 0.031714286}, {\"qFrom\": 100, \"qTo\": 299, \"price\": 0.024857143}, {\"qFrom\": 300, \"qTo\": 2499, \"price\": 0.021428571}, {\"qFrom\": 2500, \"qTo\": 4999, \"price\": 0.018857143}, {\"qFrom\": 5000, \"qTo\": 9999, \"price\": 0.016714286}, {\"qFrom\": 10000, \"qTo\": null, \"price\": 0.015714286}]",
+   "category": "RTC/Clock Chip",
+   "subcategory": "Timers / Clock Oscillators",
+   "is_basic": false,
+   "is_preferred": false
+  },
+  {
+   "lcsc": 18164403,
+   "mfr": "NE555",
+   "package": "SOP-8",
+   "description": "",
+   "stock": 18937,
+   "price": "[{\"qFrom\": 1, \"qTo\": 99, \"price\": 0.039428571}, {\"qFrom\": 100, \"qTo\": 299, \"price\": 0.031285714}, {\"qFrom\": 300, \"qTo\": 999, \"price\": 0.027142857}, {\"qFrom\": 1000, \"qTo\": 4999, \"price\": 0.024}, {\"qFrom\": 5000, \"qTo\": 9999, \"price\": 0.021571429}, {\"qFrom\": 10000, \"qTo\": null, \"price\": 0.020428571}]",
+   "category": "RTC/Clock Chip",
+   "subcategory": "Timers / Clock Oscillators",
+   "is_basic": false,
+   "is_preferred": false
+  }
+ ]
+}

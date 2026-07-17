@@ -1,0 +1,14 @@
+{
+ "components": [
+  {
+   "lcsc": 7593,
+   "mfr": "NE555DR",
+   "package": "SOIC-8",
+   "is_basic": false,
+   "is_preferred": true,
+   "description": "",
+   "stock": 322212,
+   "price": 0.091
+  }
+ ]
+}

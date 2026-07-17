@@ -1,0 +1,6 @@
+Designator;Value;Package;Quantity;JLCPCB Part;DNP
+R1;4k7;0603;1;;
+R2;4k7;0603;1;;
+R10;4k7;0603;1;;
+SW1;TS-1187A;SW_SMD;1;C318884;
+R3;100k;0603;1;;DNP
