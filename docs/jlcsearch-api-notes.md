@@ -18,7 +18,7 @@ Recorded fixtures for tests live in `tests/fixtures/jlc/`.
 | `package=` on `/components/list.json` | Supported and filters correctly (`search=NE555&package=SOIC-8` → SOIC-8 rows only) — but **case-sensitive**: `package=soic-8` → **0 rows**. See dedicated section below. |
 | `package=` on `/api/search` | Also supported (`q=NE555&package=SOIC-8&limit=20` → 3 SOIC-8 rows) and equally **case-sensitive** (`package=soic-8` → 0 rows). |
 | `full=true` | Appears to be a **no-op** today: `is_basic`/`is_preferred` (and `category` on list.json) come back with or without it on both `/api/search` and `/components/list.json`. Still passed defensively. |
-| `search=C<id>` on category endpoints | Works for exact-part lookup (`/resistors/list.json?search=C25804` → the C25804 row **with** its `attributes` JSON), but fuzzy: related rows ride along, capped at ~100 when unfiltered — match the exact `lcsc` client-side. |
+| `search=C<id>` on category endpoints | **Per-endpoint**: `/resistors` and `/capacitors` honor it (exact row **with** `attributes` JSON; fuzzy neighbors ride along — match exact `lcsc` client-side). `/leds` **ignores** `search=` entirely; combined with the 100-row stock-ordered cap, absence from a listing proves nothing. Verify specific parts via `/components/list.json?search=C<id>`. |
 | Fallback text queries | `/api/search?q=10k 0603` and `q=100nF 0603` return sensible passives (C25804, C14663 first). Good parametric→text fallback format: `"<human value> <package>"`. |
 
 ## `/capacitors/list.json`
@@ -141,6 +141,18 @@ rows — so the exact `lcsc` must be matched client-side. This is what
 first 10 verbatim rows): `tests/fixtures/jlc/resistors-search-c25804.json`,
 `tests/fixtures/jlc/capacitors-search-c14663.json`.
 
+**`search=` support is per-endpoint, not universal** (probed 2026-07-17):
+`/resistors` and `/capacitors` honor it, but **`/leds/list.json` ignores it
+entirely** — `search=C2286` and `search=KT-0603` both return the same
+stock-ordered top-100 rows as an unfiltered query. Combined with the 100-row
+cap, this can silently hide low-stock (including basic-tier) parts from
+package-only queries: whether a specific part is basic must be verified via
+`/components/list.json?search=C<id>` (exact lookup works there), never inferred
+from its absence in a `/leds` listing. Assume other category endpoints ignore
+`search=` too until probed. Known basic LEDs as of this probe, for reference:
+C2286 (KT-0603R red 0603), C2297 (KT-0805G emerald 0805), C84256 (NCD0805R1 red
+0805).
+
 Reminder: the `limit` param is **ignored** by every `list.json` endpoint (the
 category endpoints and `/components/list.json` alike; only `/api/search` honors
 it) — always trim client-side.
@@ -160,7 +172,13 @@ forward_voltage, forward_current, color, wavelength_nm, luminous_intensity_mcd,
 viewing_angle_deg, power_dissipation_mw, operating_temp_min, operating_temp_max,
 lens_color, mounting_style, is_rgb, is_basic, is_preferred, attributes` (JSON string
 incl. `Illumination Color`, `Voltage - Forward(Vf)`). `color` may be null even when
-attributes carry the color.
+attributes carry the color (e.g. C965805 XL-1608SYGC-06 is yellow-green with
+`color: null`).
+
+`search=` is **ignored** on this endpoint (see the section above) and rows
+appear stock-ordered under the 100-row cap — a `package=0603` query can miss
+0603 parts with lower stock, so treat `/leds` listings as a sample, not a
+catalog. Exact-part checks go through `/components/list.json?search=C<id>`.
 
 ## `/voltage_regulators/list.json` (fields only)
 
