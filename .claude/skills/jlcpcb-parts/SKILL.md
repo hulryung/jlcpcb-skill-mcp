@@ -159,15 +159,15 @@ ICs pending datasheet check, single-source lines without alternatives, DNP.
 
 | Ref | Qty | Value/MPN | LCSC | Tier | Stock | Unit$ | Line$ | Why |
 |---|---|---|---|---|---|---|---|---|
-| R1-R4 | 4 | 10kΩ ±1% 0603 | C25804 | basic | 30M+ | $0.001 | $0.04 | Basic, huge stock, no fee |
-| C1-C3 | 3 | 100nF X7R 50V 0603 (CC0603KRX7R9BB104) | C14663 | basic | 80M+ | $0.002 | $0.06 | Basic decoupling staple |
-| U1 | 1 | AP2112K-3.3 SOT-25-5 (= SOT-23-5 footprint) | C51118 | extended | 180k | $0.13 | $1.27 | Meets 600mA/low-IQ spec; +$3 fee |
+| R1-R4 | 4 | 10kΩ ±1% 0603 | C25804 | basic | 30M+ | USD 0.001 | USD 0.04 | Basic, huge stock, no fee |
+| C1-C3 | 3 | 100nF X7R 50V 0603 (CC0603KRX7R9BB104) | C14663 | basic | 80M+ | USD 0.002 | USD 0.06 | Basic decoupling staple |
+| U1 | 1 | AP2112K-3.3 SOT-25-5 (= SOT-23-5 footprint) | C51118 | extended | 180k | USD 0.13 | $1.27 | Meets 600mA/low-IQ spec; +$3 fee |
 
 ```
 Boards: 10
 Components: $1.37
 Loading fees: $3 (1 extended part × $3)
-Total: $4.37  (≈ $0.44 / board, excl. PCB fab + assembly service fee)
+Total: $4.37  (≈ USD 0.44 / board, excl. PCB fab + assembly service fee)
 ```
 
 Risks: U1 is extended and single-source here — alternative: AMS1117-3.3
