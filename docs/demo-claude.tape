@@ -11,17 +11,17 @@ Set Padding 14
 Set TypingSpeed 45ms
 Set Framerate 12
 
-Type "cd ~/dev/esp32c3-demo && claude"
+Type "cd ~/dev/esp32c3-demo && claude --model sonnet"
 Enter
-Wait+Screen@90s /Fable/
+Wait+Screen@90s /bypass permissions|shift\+tab/
 Sleep 3s
 
-Type "부품을 검색해보고, 적절한 부품을 지정해줘. 20장 생산 기준으로."
+Type "부품을 검색해보고, 적절한 부품을 골라서 보여줘. 20장 생산 기준으로."
 Sleep 1.5s
 Enter
 
-Wait+Screen@20m /DONE-MAPPED/
-Sleep 10s
+Wait+Screen@15m /C2681588|합계|Total: \$/
+Sleep 25s
 
 Type "/exit"
 Sleep 1s

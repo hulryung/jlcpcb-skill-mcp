@@ -22,7 +22,11 @@ KiCad 회로에서 곧바로 JLCPCB/LCSC 부품을 찾아 **조립 비용까지 
 
 ![데모 — 예제 ESP32-C3 보드의 JLCPCB 부품 추천](docs/demo.gif)
 
-([MP4](docs/demo.mp4)로도 제공. 재녹화는 `vhs docs/demo.tape`.)
+그리고 같은 작업을 **실제 Claude Code 세션**에서 — 자연어 한 줄("부품을 검색해보고, 적절한 부품을 골라서 보여줘. 20장 생산 기준으로.")로 스킬+MCP가 끝까지 진행합니다:
+
+![데모 — 플러그인으로 부품을 고르는 실제 Claude Code 세션](docs/demo-claude.gif)
+
+(MP4: [스크립트 데모](docs/demo.mp4) · [세션 데모](docs/demo-claude.mp4). 재녹화는 `vhs docs/demo.tape` / `vhs docs/demo-claude.tape`.)
 
 ## 빠른 시작
 
