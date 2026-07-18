@@ -1,0 +1,13 @@
+{
+  "name": "jlcpcb-parts",
+  "description": "JLCPCB/LCSC part search and cost-aware BOM suggestion for KiCad projects: 7 MCP tools (search, parametric passives, alternatives, KiCad analysis, BOM suggestion, assembly cost) plus a part-selection skill (basic/preferred/extended tiers, loading fees, stock risk).",
+  "version": "0.1.0",
+  "author": { "name": "dkkang" },
+  "skills": "./.claude/skills/",
+  "mcpServers": {
+    "jlcpcb-parts": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist-plugin/index.mjs"]
+    }
+  }
+}

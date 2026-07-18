@@ -1,0 +1,11 @@
+{
+  "name": "jlcpcb-tools",
+  "owner": { "name": "dkkang" },
+  "plugins": [
+    {
+      "name": "jlcpcb-parts",
+      "source": "./",
+      "description": "JLCPCB/LCSC part suggestion MCP server + selection skill for KiCad projects"
+    }
+  ]
+}

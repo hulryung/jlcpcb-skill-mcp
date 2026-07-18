@@ -69,6 +69,40 @@ claude
 
 **업데이트 시**: `git pull && npm install && npm run build` — 등록은 `dist/index.js` 경로를 가리키므로 재등록이 필요 없습니다.
 
+## 팀 배포: GitHub·npm·원격 서버
+
+로컬 경로 없이 배포하는 방법 세 가지입니다.
+
+**A) Claude Code 플러그인 (권장 — 스킬+MCP를 한 번에)**
+
+이 저장소는 플러그인 겸 마켓플레이스로 구성돼 있습니다(`.claude-plugin/plugin.json` + `marketplace.json`, 의존성 포함 단일 번들 `dist-plugin/index.mjs` 커밋). GitHub에 푸시하면 팀원은 클론·빌드 없이:
+
+```
+/plugin marketplace add <owner>/jlcpcb-skill-mcp
+/plugin install jlcpcb-parts@jlcpcb-tools
+```
+
+스킬과 MCP 서버가 함께 설치되고, `/plugin` 메뉴에서 업데이트/제거할 수 있습니다. 서버 코드를 고치면 `npm run bundle`로 번들을 갱신해 커밋해야 반영됩니다. 단일 플러그인을 마켓플레이스 없이 직접 설치하는 방식은 지원되지 않아 marketplace.json이 필수입니다(이미 포함).
+
+**B) npm 배포 (MCP만)**
+
+```bash
+npm publish           # 이후 사용자는:
+claude mcp add jlcpcb-parts -- npx -y jlcpcb-parts-mcp
+```
+
+npx가 캐시하므로 세션마다 재설치하지 않습니다. 스킬은 별도로 배포해야 하므로(A안이 해결) MCP만 필요할 때 적합합니다. `npx github:owner/repo` 형태의 GitHub 직접 실행은 지원되지 않습니다.
+
+**C) 원격 HTTP 서버 (설치 제로)**
+
+현재 서버는 stdio 전용이지만, MCP SDK의 StreamableHTTP 트랜스포트를 붙여 서버(자체 서버, Cloudflare Workers 등)에 올리면 팀 전체가 Node 설치 없이 URL만으로 씁니다:
+
+```bash
+claude mcp add --transport http jlcpcb-parts https://jlcpcb-mcp.example.com/mcp
+```
+
+사내 공유에 가장 편하지만 호스팅 운영이 필요하고, 스킬은 역시 별도 배포(A안 병행)입니다. 필요 시 HTTP 트랜스포트 추가는 작은 작업입니다.
+
 ## MCP 도구 (7종)
 
 | 도구 | 역할 |
