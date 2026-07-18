@@ -25,7 +25,14 @@ npm run build
 
 ## 다른 프로젝트·전역에서 사용하기
 
-한 번만 등록하면 어느 디렉토리에서든 (KiCad 프로젝트 포함) 사용할 수 있습니다.
+**가장 쉬운 방법 — 플러그인 설치** (스킬+MCP 한 번에, 클론/빌드 불필요):
+
+```
+/plugin marketplace add hulryung/jlcpcb-skill-mcp
+/plugin install jlcpcb-parts@jlcpcb-tools
+```
+
+플러그인으로 설치했다면 아래 1)·2)의 수동 등록은 필요 없습니다. 로컬 체크아웃으로 개발하면서 쓰고 싶을 때만 해당됩니다.
 
 **1) MCP 서버를 user 스코프로 등록** — 모든 프로젝트에 적용:
 
@@ -75,10 +82,10 @@ claude
 
 **A) Claude Code 플러그인 (권장 — 스킬+MCP를 한 번에)**
 
-이 저장소는 플러그인 겸 마켓플레이스로 구성돼 있습니다(`.claude-plugin/plugin.json` + `marketplace.json`, 의존성 포함 단일 번들 `dist-plugin/index.mjs` 커밋). GitHub에 푸시하면 팀원은 클론·빌드 없이:
+이 저장소는 플러그인 겸 마켓플레이스로 구성돼 있습니다(`.claude-plugin/plugin.json` + `marketplace.json`, 의존성 포함 단일 번들 `dist-plugin/index.mjs` 커밋). 팀원은 클론·빌드 없이:
 
 ```
-/plugin marketplace add <owner>/jlcpcb-skill-mcp
+/plugin marketplace add hulryung/jlcpcb-skill-mcp
 /plugin install jlcpcb-parts@jlcpcb-tools
 ```
 
