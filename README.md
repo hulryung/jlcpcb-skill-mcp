@@ -19,13 +19,55 @@ npm install
 npm run build
 ```
 
-이 저장소에는 `.mcp.json`이 포함되어 있어 Claude Code로 이 디렉토리를 열면 서버가 자동 등록됩니다. 다른 프로젝트에서 쓰려면:
-
-```bash
-claude mcp add jlcpcb-parts -- node /path/to/jlcpcb-skill-mcp/dist/index.js
-```
+이 저장소에는 `.mcp.json`이 포함되어 있어 Claude Code로 이 디렉토리를 열면 서버가 자동 등록됩니다.
 
 부품 선정 노하우가 담긴 스킬(`.claude/skills/jlcpcb-parts/`)도 함께 로드됩니다 — "이 회로에 맞는 부품 골라줘"라고 하면 스킬이 티어/재고/가격 규칙에 따라 도구들을 순서대로 호출합니다.
+
+## 다른 프로젝트·전역에서 사용하기
+
+한 번만 등록하면 어느 디렉토리에서든 (KiCad 프로젝트 포함) 사용할 수 있습니다.
+
+**1) MCP 서버를 user 스코프로 등록** — 모든 프로젝트에 적용:
+
+```bash
+claude mcp add --scope user jlcpcb-parts -- node /Users/dkkang/dev/jlcpcb-skill-mcp/dist/index.js
+claude mcp list   # "✔ Connected" 확인
+```
+
+해제는 `claude mcp remove jlcpcb-parts -s user`. (이 저장소 안에서는 프로젝트 스코프 `.mcp.json`이 함께 잡혀 중복 경고가 뜨는데, 같은 서버라 무해합니다.)
+
+**2) 스킬을 전역(personal)으로 설치** — 심링크라 저장소를 업데이트하면 자동 반영:
+
+```bash
+ln -sfn /Users/dkkang/dev/jlcpcb-skill-mcp/.claude/skills/jlcpcb-parts ~/.claude/skills/jlcpcb-parts
+```
+
+**3) KiCad와 함께 쓰는 워크플로우** — KiCad 자체는 MCP 클라이언트가 아니므로 통합은 "터미널을 옆에 두는" 방식입니다:
+
+```bash
+cd ~/dev/my-board          # .kicad_sch가 있는 프로젝트
+claude
+> 이 회로에 맞는 부품 골라줘. 50장 생산 기준으로.
+```
+
+스킬이 자동 트리거되어 `analyze_kicad` → `suggest_bom_parts` → 리뷰 라인 해결 → 비용 산출까지 진행하고, 회로도의 LCSC 필드/풋프린트 수정을 요청하면 파일을 직접 고쳐줍니다. **회로도를 고친 뒤에는 KiCad에서 F8(Update PCB from Schematic)로 PCB에 반영**하는 것만 잊지 마세요. 계층 회로도(hierarchical sheets)는 루트 파일만 넘기면 하위 시트를 자동 추적합니다.
+
+**4) Claude Desktop / 다른 MCP 클라이언트에서** — stdio 서버라 어디든 붙습니다. Claude Desktop은 `~/Library/Application Support/Claude/claude_desktop_config.json`에:
+
+```json
+{
+  "mcpServers": {
+    "jlcpcb-parts": {
+      "command": "node",
+      "args": ["/Users/dkkang/dev/jlcpcb-skill-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+저장 후 Desktop 앱을 완전히 종료했다가 재시작하면 적용됩니다. (단, 스킬은 Claude Code 전용이므로 Desktop에서는 도구만 쓸 수 있습니다.)
+
+**업데이트 시**: `git pull && npm install && npm run build` — 등록은 `dist/index.js` 경로를 가리키므로 재등록이 필요 없습니다.
 
 ## MCP 도구 (7종)
 
