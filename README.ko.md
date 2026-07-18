@@ -14,6 +14,14 @@ KiCad 회로에서 곧바로 JLCPCB/LCSC 부품을 찾아 **조립 비용까지 
 
 데이터는 [jlcsearch](https://github.com/tscircuit/jlcsearch) (tscircuit)의 공개 API를 사용합니다.
 
+## 데모
+
+명령 하나로 예제 ESP32-C3 보드가 회로도에서 티어·비용이 계산된 BOM으로 (라이브 데이터):
+
+![데모 — 예제 ESP32-C3 보드의 JLCPCB 부품 추천](docs/demo.gif)
+
+([MP4](docs/demo.mp4)로도 제공. 재녹화는 `vhs docs/demo.tape`.)
+
 ## 빠른 시작
 
 ```bash

@@ -14,6 +14,14 @@ Not just search — it automates part *selection*:
 
 Data comes from the public [jlcsearch](https://github.com/tscircuit/jlcsearch) API by tscircuit.
 
+## Demo
+
+One command takes the example ESP32-C3 board from schematic to a costed, tier-aware BOM (live data):
+
+![Demo — suggesting JLCPCB parts for the example ESP32-C3 board](docs/demo.gif)
+
+(Also available as [MP4](docs/demo.mp4). Re-render with `vhs docs/demo.tape`.)
+
 ## Quick start
 
 ```bash
