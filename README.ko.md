@@ -4,6 +4,8 @@
 
 KiCad 회로에서 곧바로 JLCPCB/LCSC 부품을 찾아 **조립 비용까지 고려해 추천**하는 MCP 서버 + Claude 스킬.
 
+> 📖 **문서·설치 가이드 (Claude Code / Codex / 기타 MCP 클라이언트):** https://hulryung.github.io/jlcpcb-skill-mcp/
+
 단순 검색이 아니라 부품 **선정**을 자동화합니다:
 
 - **Basic > Preferred > Extended 티어 우선** — Extended는 부품 종류당 $3 로딩피가 붙습니다 (Basic 무료, Preferred Extended는 Economic PCBA에서 면제)

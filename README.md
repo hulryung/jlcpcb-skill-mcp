@@ -4,6 +4,8 @@
 
 An MCP server + Claude skill that picks JLCPCB/LCSC parts for your KiCad circuit with **assembly cost in mind**.
 
+> 📖 **Docs & install guide (Claude Code / Codex / other MCP clients):** https://hulryung.github.io/jlcpcb-skill-mcp/
+
 Not just search — it automates part *selection*:
 
 - **Basic > Preferred > Extended tier priority** — Extended parts carry a $3 loading fee per unique part (Basic is free; Preferred Extended is waived on Economic PCBA)
