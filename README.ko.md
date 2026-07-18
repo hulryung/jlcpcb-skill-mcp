@@ -39,7 +39,7 @@ npm run build
 **1) MCP 서버를 user 스코프로 등록** — 모든 프로젝트에 적용:
 
 ```bash
-claude mcp add --scope user jlcpcb-parts -- node /Users/dkkang/dev/jlcpcb-skill-mcp/dist/index.js
+claude mcp add --scope user jlcpcb-parts -- node /path/to/jlcpcb-skill-mcp/dist/index.js
 claude mcp list   # "✔ Connected" 확인
 ```
 
@@ -48,7 +48,7 @@ claude mcp list   # "✔ Connected" 확인
 **2) 스킬을 전역(personal)으로 설치** — 심링크라 저장소를 업데이트하면 자동 반영:
 
 ```bash
-ln -sfn /Users/dkkang/dev/jlcpcb-skill-mcp/.claude/skills/jlcpcb-parts ~/.claude/skills/jlcpcb-parts
+ln -sfn /path/to/jlcpcb-skill-mcp/.claude/skills/jlcpcb-parts ~/.claude/skills/jlcpcb-parts
 ```
 
 **3) KiCad와 함께 쓰는 워크플로우** — KiCad 자체는 MCP 클라이언트가 아니므로 통합은 "터미널을 옆에 두는" 방식입니다:
@@ -68,7 +68,7 @@ claude
   "mcpServers": {
     "jlcpcb-parts": {
       "command": "node",
-      "args": ["/Users/dkkang/dev/jlcpcb-skill-mcp/dist/index.js"]
+      "args": ["/path/to/jlcpcb-skill-mcp/dist/index.js"]
     }
   }
 }
