@@ -16,7 +16,7 @@ Enter
 Wait+Screen@90s /bypass permissions|shift\+tab/
 Sleep 3s
 
-Type "부품을 검색해보고, 적절한 부품을 골라서 보여줘. 20장 생산 기준으로."
+Type "Search for parts and pick the right ones for this board, for a 20-board production run."
 Sleep 1.5s
 Enter
 

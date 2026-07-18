@@ -22,7 +22,7 @@ One command takes the example ESP32-C3 board from schematic to a costed, tier-aw
 
 ![Demo — suggesting JLCPCB parts for the example ESP32-C3 board](docs/demo.gif)
 
-And the same thing inside a **real Claude Code session** — one natural-language request ("search parts and pick the right ones, for a 20-board run") drives the skill + MCP tools end to end:
+And the same thing inside a **real Claude Code session** — one natural-language request ("Search for parts and pick the right ones for this board, for a 20-board production run.") drives the skill + MCP tools end to end:
 
 ![Demo — a live Claude Code session picking parts via the plugin](docs/demo-claude.gif)
 
