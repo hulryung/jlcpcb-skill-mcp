@@ -1,6 +1,6 @@
 # jlcpcb-skill-mcp
 
-**English** | [한국어](README.ko.md)
+**English** | [한국어](README.ko.md) | [📖 Docs site](https://hulryung.github.io/jlcpcb-skill-mcp/)
 
 An MCP server + Claude skill that picks JLCPCB/LCSC parts for your KiCad circuit with **assembly cost in mind**.
 

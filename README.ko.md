@@ -1,6 +1,6 @@
 # jlcpcb-skill-mcp
 
-[English](README.md) | **한국어**
+[English](README.md) | **한국어** | [📖 문서 사이트](https://hulryung.github.io/jlcpcb-skill-mcp/)
 
 KiCad 회로에서 곧바로 JLCPCB/LCSC 부품을 찾아 **조립 비용까지 고려해 추천**하는 MCP 서버 + Claude 스킬.
 
