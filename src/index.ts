@@ -15,7 +15,9 @@ async function main(): Promise<void> {
   const dbPath = process.env.JLCPCB_PARTS_DB || defaultDbPath();
   const mode = existsSync(dbPath)
     ? `local DB (${dbPath}) + live API verify`
-    : "live jlcsearch API";
+    : process.env.JLCPCB_API_URL
+      ? `hosted API (${process.env.JLCPCB_API_URL})`
+      : "live jlcsearch API";
   console.error(`jlcpcb-parts MCP server running on stdio — parts data: ${mode}`);
 }
 

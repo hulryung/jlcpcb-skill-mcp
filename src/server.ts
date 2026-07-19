@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { JlcClient } from "./jlc/client.js";
 import { openDbIfAvailable } from "./jlc/db.js";
 import { HybridJlcClient } from "./jlc/hybrid.js";
+import { JlcRemoteClient } from "./jlc/remote.js";
 import type { JlcClientLike, ToolDeps } from "./tools/common.js";
 import { registerSearchParts } from "./tools/search-parts.js";
 import { registerSearchPassives } from "./tools/search-passives.js";
@@ -31,14 +32,18 @@ candidates + cost) → review needs_review / no_match lines with search_parts,
 search_passives, find_alternatives → estimate_assembly_cost for the final picks.`;
 
 /**
- * Default data source: if a local catalog DB is present (JLCPCB_PARTS_DB or the
- * default cache path), search runs offline over the full catalog with the live
- * API reserved for final stock/tier verification; otherwise the live API alone.
+ * Default data source, in priority order:
+ *  1. Local catalog DB present (JLCPCB_PARTS_DB / default cache path) → hybrid
+ *     (offline full-catalog search, live API for final stock/tier verification).
+ *  2. JLCPCB_API_URL set → our hosted D1 Worker (catalog search, no local download).
+ *  3. Otherwise → the live jlcsearch API directly.
  */
 function defaultClient(): JlcClientLike {
   const api = new JlcClient();
   const db = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
-  return db ? new HybridJlcClient(db, api) : api;
+  if (db) return new HybridJlcClient(db, api);
+  if (process.env.JLCPCB_API_URL) return new JlcRemoteClient({ baseUrl: process.env.JLCPCB_API_URL });
+  return api;
 }
 
 export function buildServer(deps: BuildServerDeps = {}): McpServer {

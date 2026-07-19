@@ -1,0 +1,17 @@
+{
+  // Cloudflare Worker serving the JLCPCB catalog from D1.
+  // Deploy: see worker/README.md (needs `wrangler login` + a D1 database).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jlcpcb-parts-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jlcpcb-parts",
+      // Filled in by `wrangler d1 create jlcpcb-parts` (or paste an existing id).
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ]
+}

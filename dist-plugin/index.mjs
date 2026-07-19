@@ -21997,6 +21997,77 @@ var HybridJlcClient = class {
   }
 };
 
+// src/jlc/remote.ts
+var JlcRemoteClient = class {
+  base;
+  timeoutMs;
+  fetchFn;
+  constructor(opts) {
+    this.base = opts.baseUrl.replace(/\/+$/, "");
+    this.timeoutMs = opts.timeoutMs ?? 1e4;
+    this.fetchFn = opts.fetchFn ?? fetch;
+  }
+  async get(path3) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
+    try {
+      const res = await this.fetchFn(`${this.base}${path3}`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`jlcpcb-api ${res.status} for ${path3}`);
+      return await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  qs(params) {
+    const sp = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v !== void 0 && v !== "") sp.set(k, String(v));
+    const s = sp.toString();
+    return s ? `?${s}` : "";
+  }
+  searchComponents(opts) {
+    return this.get(
+      `/search${this.qs({
+        q: opts.q,
+        package: opts.package,
+        tier: opts.tier,
+        min_stock: opts.minStock,
+        limit: opts.limit
+      })}`
+    );
+  }
+  searchResistors(opts) {
+    return this.get(
+      `/resistors${this.qs({
+        ohms: opts.ohms,
+        package: opts.package,
+        max_tolerance: opts.maxTolerance,
+        limit: opts.limit
+      })}`
+    );
+  }
+  searchCapacitors(opts) {
+    return this.get(
+      `/capacitors${this.qs({
+        farads: opts.farads,
+        package: opts.package,
+        min_voltage: opts.minVoltage,
+        limit: opts.limit
+      })}`
+    );
+  }
+  getPart(lcsc) {
+    const id = String(lcsc).replace(/^c/i, "");
+    return this.get(`/part/C${id}`);
+  }
+  getPassiveDetail(lcsc, kind) {
+    const id = String(lcsc).replace(/^c/i, "");
+    return this.get(`/passive/${kind}/C${id}`);
+  }
+  listCategories() {
+    return this.get(`/categories`);
+  }
+};
+
 // src/tools/common.ts
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -23911,7 +23982,9 @@ search_passives, find_alternatives \u2192 estimate_assembly_cost for the final p
 function defaultClient() {
   const api = new JlcClient();
   const db = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
-  return db ? new HybridJlcClient(db, api) : api;
+  if (db) return new HybridJlcClient(db, api);
+  if (process.env.JLCPCB_API_URL) return new JlcRemoteClient({ baseUrl: process.env.JLCPCB_API_URL });
+  return api;
 }
 function buildServer(deps = {}) {
   const client = deps.client ?? defaultClient();
@@ -23936,7 +24009,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   const dbPath = process.env.JLCPCB_PARTS_DB || defaultDbPath();
-  const mode = existsSync2(dbPath) ? `local DB (${dbPath}) + live API verify` : "live jlcsearch API";
+  const mode = existsSync2(dbPath) ? `local DB (${dbPath}) + live API verify` : process.env.JLCPCB_API_URL ? `hosted API (${process.env.JLCPCB_API_URL})` : "live jlcsearch API";
   console.error(`jlcpcb-parts MCP server running on stdio \u2014 parts data: ${mode}`);
 }
 main().catch((e) => {
