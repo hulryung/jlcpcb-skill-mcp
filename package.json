@@ -1,6 +1,6 @@
 {
   "name": "jlcpcb-skill-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server + Claude skill for JLCPCB/LCSC part search, KiCad BOM analysis, and assembly-cost-aware part suggestion",
   "type": "module",
   "license": "MIT",

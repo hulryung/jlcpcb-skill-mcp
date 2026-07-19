@@ -24091,7 +24091,7 @@ function buildServer(deps = {}) {
   const client = deps.client ?? defaultClient();
   const toolDeps = { client };
   const server = new McpServer(
-    { name: "jlcpcb-parts", version: "0.1.0" },
+    { name: "jlcpcb-parts", version: "0.2.0" },
     { instructions: INSTRUCTIONS }
   );
   registerSearchParts(server, toolDeps);

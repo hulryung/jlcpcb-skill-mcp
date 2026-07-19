@@ -54,7 +54,7 @@ export function buildServer(deps: BuildServerDeps = {}): McpServer {
   const toolDeps: ToolDeps = { client };
 
   const server = new McpServer(
-    { name: "jlcpcb-parts", version: "0.1.0" },
+    { name: "jlcpcb-parts", version: "0.2.0" },
     { instructions: INSTRUCTIONS }
   );
 
