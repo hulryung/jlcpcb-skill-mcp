@@ -95,6 +95,30 @@ codex mcp add jlcpcb-parts -- node ~/.jlcpcb-parts.mjs</code></pre>
   <p>Cursor, Claude Desktop, Gemini CLI 등 stdio MCP를 지원하는 클라이언트라면 위에서 받은
   번들 파일을 같은 방식으로 등록하면 됩니다 — <code>command: node</code>, <code>args: [번들 경로]</code>.</p>
 
+  <h2 id="data">부품 데이터 소스 (선택)</h2>
+  <p>기본값은 공개 jlcsearch API라 별도 설정이 필요 없습니다. 팀에서 공유하거나 오프라인으로
+  쓰고 싶다면 두 가지 선택지가 있습니다.</p>
+
+  <h3>호스팅 카탈로그 API — 다운로드 없이 (권장)</h3>
+  <p>JLCPCB 재고 부품 전체(약 693,000개)를 Cloudflare D1에 올려 둔 서버입니다. 팀원은 아무것도
+  받지 않고 URL만 지정하면 됩니다. 등록 시 환경변수 하나만 더 넣으세요:</p>
+  <figure class="code">
+    <figcaption>Claude Code / Codex</figcaption>
+    <pre><code>claude mcp add --scope user jlcpcb-parts \
+  -e JLCPCB_API_URL=https://jlcpcb-parts-api.dkkang7484.workers.dev \
+  -- node /path/to/jlcpcb-skill-mcp/dist/index.js</code></pre>
+  </figure>
+  <p class="muted">KiCad 파일 분석은 로컬에서 돌고 부품 데이터만 서버에서 옵니다. 최신 재고와
+  preferred 티어는 발주 직전 <code>get_part</code>가 라이브로 확인합니다.</p>
+
+  <h3>로컬 카탈로그 DB — 완전 오프라인</h3>
+  <p>전체 카탈로그를 내려받아 로컬에서 검색합니다(약 830MB 다운로드, ~4.9GB). rate limit 없이
+  가장 완전한 결과를 얻습니다.</p>
+  <figure class="code">
+    <figcaption>terminal</figcaption>
+    <pre><code>npm run db:update   # 서버가 자동 감지해 하이브리드 모드로 전환</code></pre>
+  </figure>
+
   <h2 id="how">사용하는 방법</h2>
   <p>KiCad 프로젝트 디렉토리에서 Claude Code를 열고 평소처럼 말하면 됩니다.</p>
   <ul>
