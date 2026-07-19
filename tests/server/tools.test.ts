@@ -448,6 +448,53 @@ describe("find_alternatives", () => {
     expect(lcscs).not.toContain("C6186");
   });
 
+  it("excludes wrong-class parts from a fuzzy connector search", async () => {
+    const stub = new StubClient();
+    const usbc = stub.addPart(
+      makePart({
+        lcscId: 165948,
+        mfr: "TYPE-C-31-M-12",
+        description: "16P USB-C receptacle SMD",
+        package: "SMD",
+        category: "Connectors",
+        subcategory: "USB Connectors",
+        tier: "extended",
+        attributes: {},
+      })
+    );
+    const otherConnector = makePart({
+      lcscId: 456789,
+      mfr: "TYPE-C-31-M-14",
+      description: "16P USB-C receptacle SMD",
+      package: "SMD",
+      category: "Connectors",
+      subcategory: "USB Connectors",
+      tier: "extended",
+      attributes: {},
+    });
+    // A fuzzy MPN search returns an unrelated inductor (package "SMD,6x6mm"
+    // prefix-matches the connector's generic "SMD") — it must be filtered out.
+    const inductor = makePart({
+      lcscId: 57254,
+      mfr: "SWPA6045S6R8MT",
+      description: "6.8uH Power Inductor SMD",
+      package: "SMD,6x6mm",
+      category: "Inductors/Coils/Transformers",
+      subcategory: "Power Inductors",
+      tier: "extended",
+      attributes: {},
+    });
+    stub.searchComponentsResult = [usbc, otherConnector, inductor];
+    const client = await setup(stub);
+
+    const res = await callTool(client, "find_alternatives", { lcsc: "C165948" });
+    const { data } = splitResult(res);
+    const lcscs = data.alternatives.map((a: any) => a.lcsc);
+    expect(lcscs).toContain("C456789"); // the other USB-C connector
+    expect(lcscs).not.toContain("C57254"); // the inductor is dropped
+    expect(lcscs).not.toContain("C165948"); // never the part itself
+  });
+
   it("errors for an unknown LCSC number", async () => {
     const client = await setup(new StubClient());
     const res = await callTool(client, "find_alternatives", { lcsc: "C424242" });

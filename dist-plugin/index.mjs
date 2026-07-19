@@ -23670,7 +23670,15 @@ function registerFindAlternatives(server, deps) {
           });
         }
         const maxCandidates = clampLimit2(limit, 5);
-        const others = pool.filter((p) => p.lcscId !== target.lcscId);
+        let others = pool.filter((p) => p.lcscId !== target.lcscId);
+        if (cls !== "resistor" && cls !== "capacitor") {
+          const sameClass = others.filter((p) => classifyPart(p) === cls);
+          others = sameClass;
+          if (target.category) {
+            const sameCategory = sameClass.filter((p) => (p.category ?? "") === target.category);
+            if (sameCategory.length > 0) others = sameCategory;
+          }
+        }
         const candidates = rankCandidates(line, others, {
           ...DEFAULT_SUGGEST_OPTIONS,
           maxCandidates

@@ -89,7 +89,21 @@ export function registerFindAlternatives(server: McpServer, deps: ToolDeps): voi
         }
 
         const maxCandidates = clampLimit(limit, 5);
-        const others = pool.filter((p) => p.lcscId !== target.lcscId);
+        let others = pool.filter((p) => p.lcscId !== target.lcscId);
+        // For non-passives the pool comes from a fuzzy MPN/text search, which
+        // can return unrelated parts (e.g. inductors for a generic-"SMD" USB-C
+        // connector). Passives are already spec-verified by the parametric
+        // search, but everything else must be constrained to the target's own
+        // component class — and its catalog category when that narrows further —
+        // so an alternative is at least the same kind of component.
+        if (cls !== "resistor" && cls !== "capacitor") {
+          const sameClass = others.filter((p) => classifyPart(p) === cls);
+          others = sameClass;
+          if (target.category) {
+            const sameCategory = sameClass.filter((p) => (p.category ?? "") === target.category);
+            if (sameCategory.length > 0) others = sameCategory;
+          }
+        }
         const candidates = rankCandidates(line, others, {
           ...DEFAULT_SUGGEST_OPTIONS,
           maxCandidates,
