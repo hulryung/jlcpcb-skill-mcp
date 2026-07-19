@@ -126,6 +126,20 @@ claude mcp add --transport http jlcpcb-parts https://jlcpcb-mcp.example.com/mcp
 
 Most convenient for in-house sharing, but you operate the hosting, and the skill still ships separately (pair with option A). Adding the HTTP transport is a small task if needed.
 
+## Local parts database (optional)
+
+By default the server queries the live [jlcsearch](https://github.com/tscircuit/jlcsearch) API. You can instead run against a **local copy of the full JLCPCB catalog** — no rate limits, no dependency on a third-party mirror, and complete results (the live mirror caps some queries at 100 rows).
+
+```bash
+npm run db:update      # downloads ~830 MB, expands to ~4.9 GB at ~/.cache/jlcpcb-parts/
+```
+
+Requires the `unzip` CLI and Node ≥ 22 (built-in `node:sqlite`). The server auto-detects the DB on start and switches to **hybrid mode**: search runs offline over the full catalog, while `get_part` still hits the live API for fresh stock and the preferred-tier flag before you commit to a part. The download is a snapshot (from [bouni/kicad-jlcpcb-tools](https://github.com/bouni/kicad-jlcpcb-tools), rebuilt daily) so stock figures are approximate until that final live check — always re-verify before ordering.
+
+- Refreshes when older than 7 days (`npm run db:update -- --force` to force).
+- `JLCPCB_PARTS_DB=/path/to/parts-fts5.db` overrides the location.
+- The catalog DB distinguishes only Basic vs Extended (not Preferred); preferred-extended detection still comes from the live API on `get_part`. Basic detection matches the live data (verified 13/13 on real boards).
+
 ## MCP tools (7)
 
 | Tool | Purpose |

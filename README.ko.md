@@ -126,6 +126,20 @@ claude mcp add --transport http jlcpcb-parts https://jlcpcb-mcp.example.com/mcp
 
 사내 공유에 가장 편하지만 호스팅 운영이 필요하고, 스킬은 역시 별도 배포(A안 병행)입니다. 필요 시 HTTP 트랜스포트 추가는 작은 작업입니다.
 
+## 로컬 부품 DB (선택)
+
+기본값은 라이브 [jlcsearch](https://github.com/tscircuit/jlcsearch) API 조회이지만, **JLCPCB 전체 카탈로그의 로컬 사본**으로 돌릴 수도 있습니다 — rate limit 없음, 서드파티 미러 의존 없음, 완전한 결과(라이브 미러는 일부 조회를 100행으로 자름).
+
+```bash
+npm run db:update      # 약 830MB 다운로드, ~/.cache/jlcpcb-parts/에 ~4.9GB로 압축 해제
+```
+
+`unzip` CLI와 Node 22 이상(내장 `node:sqlite`)이 필요합니다. 서버가 시작 시 DB를 자동 감지해 **하이브리드 모드**로 전환합니다: 검색은 전체 카탈로그를 오프라인으로 돌리고, `get_part`는 발주 직전 최신 재고와 preferred 티어 확인을 위해 여전히 라이브 API를 호출합니다. 다운로드본은 스냅샷([bouni/kicad-jlcpcb-tools](https://github.com/bouni/kicad-jlcpcb-tools), 매일 재빌드)이라 재고 수치는 그 최종 라이브 확인 전까지 근사값입니다 — 주문 전 반드시 재확인하세요.
+
+- 7일 지나면 갱신 (`npm run db:update -- --force`로 강제).
+- `JLCPCB_PARTS_DB=/경로/parts-fts5.db`로 위치 변경.
+- 카탈로그 DB는 Basic/Extended만 구분(Preferred 없음)하며, preferred-extended 판정은 `get_part` 시 라이브 API가 담당합니다. Basic 판정은 라이브 데이터와 일치함을 확인했습니다(실제 보드에서 13/13).
+
 ## MCP 도구 (7종)
 
 | 도구 | 역할 |

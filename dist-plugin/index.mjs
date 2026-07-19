@@ -101,7 +101,7 @@ var require_code = __commonJS({
     }
     exports._ = _;
     var plus = new _Code("+");
-    function str(strs, ...args) {
+    function str2(strs, ...args) {
       const expr = [safeStringify(strs[0])];
       let i = 0;
       while (i < args.length) {
@@ -112,7 +112,7 @@ var require_code = __commonJS({
       optimize(expr);
       return new _Code(expr);
     }
-    exports.str = str;
+    exports.str = str2;
     function addCodeArg(code, arg) {
       if (arg instanceof _Code)
         code.push(...arg._items);
@@ -155,7 +155,7 @@ var require_code = __commonJS({
       return;
     }
     function strConcat(c1, c2) {
-      return c2.emptyStr() ? c1 : c1.emptyStr() ? c2 : str`${c1}${c2}`;
+      return c2.emptyStr() ? c1 : c1.emptyStr() ? c2 : str2`${c1}${c2}`;
     }
     exports.strConcat = strConcat;
     function interpolate(x) {
@@ -1117,22 +1117,22 @@ var require_util = __commonJS({
       return (0, codegen_1._)`${topSchemaRef}${schemaPath}${(0, codegen_1.getProperty)(keyword)}`;
     }
     exports.schemaRefOrVal = schemaRefOrVal;
-    function unescapeFragment(str) {
-      return unescapeJsonPointer(decodeURIComponent(str));
+    function unescapeFragment(str2) {
+      return unescapeJsonPointer(decodeURIComponent(str2));
     }
     exports.unescapeFragment = unescapeFragment;
-    function escapeFragment(str) {
-      return encodeURIComponent(escapeJsonPointer(str));
+    function escapeFragment(str2) {
+      return encodeURIComponent(escapeJsonPointer(str2));
     }
     exports.escapeFragment = escapeFragment;
-    function escapeJsonPointer(str) {
-      if (typeof str == "number")
-        return `${str}`;
-      return str.replace(/~/g, "~0").replace(/\//g, "~1");
+    function escapeJsonPointer(str2) {
+      if (typeof str2 == "number")
+        return `${str2}`;
+      return str2.replace(/~/g, "~0").replace(/\//g, "~1");
     }
     exports.escapeJsonPointer = escapeJsonPointer;
-    function unescapeJsonPointer(str) {
-      return str.replace(/~1/g, "/").replace(/~0/g, "~");
+    function unescapeJsonPointer(str2) {
+      return str2.replace(/~1/g, "/").replace(/~0/g, "~");
     }
     exports.unescapeJsonPointer = unescapeJsonPointer;
     function eachItem(xs, f) {
@@ -2157,8 +2157,8 @@ var require_json_schema_traverse = __commonJS({
         post(schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex);
       }
     }
-    function escapeJsonPtr(str) {
-      return str.replace(/~/g, "~0").replace(/\//g, "~1");
+    function escapeJsonPtr(str2) {
+      return str2.replace(/~/g, "~0").replace(/\//g, "~1");
     }
   }
 });
@@ -3222,10 +3222,10 @@ var require_utils = __commonJS({
         return { host, isIPV6: false };
       }
     }
-    function findToken(str, token) {
+    function findToken(str2, token) {
       let ind = 0;
-      for (let i = 0; i < str.length; i++) {
-        if (str[i] === token) ind++;
+      for (let i = 0; i < str2.length; i++) {
+        if (str2[i] === token) ind++;
       }
       return ind;
     }
@@ -3962,7 +3962,7 @@ var require_core = __commonJS({
     var util_1 = require_util();
     var $dataRefSchema = require_data();
     var uri_1 = require_uri();
-    var defaultRegExp = (str, flags) => new RegExp(str, flags);
+    var defaultRegExp = (str2, flags) => new RegExp(str2, flags);
     defaultRegExp.code = "new RegExp";
     var META_IGNORE_OPTIONS = ["removeAdditional", "useDefaults", "coerceTypes"];
     var EXT_SCOPE_NAMES = /* @__PURE__ */ new Set([
@@ -4757,16 +4757,16 @@ var require_ucs2length = __commonJS({
   "node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function ucs2length(str) {
-      const len = str.length;
+    function ucs2length(str2) {
+      const len = str2.length;
       let length = 0;
       let pos = 0;
       let value;
       while (pos < len) {
         length++;
-        value = str.charCodeAt(pos++);
+        value = str2.charCodeAt(pos++);
         if (value >= 55296 && value <= 56319 && pos < len) {
-          value = str.charCodeAt(pos);
+          value = str2.charCodeAt(pos);
           if ((value & 64512) === 56320)
             pos++;
         }
@@ -6649,8 +6649,8 @@ var require_formats = __commonJS({
     }
     var DATE = /^(\d\d\d\d)-(\d\d)-(\d\d)$/;
     var DAYS = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    function date3(str) {
-      const matches = DATE.exec(str);
+    function date3(str2) {
+      const matches = DATE.exec(str2);
       if (!matches)
         return false;
       const year = +matches[1];
@@ -6669,8 +6669,8 @@ var require_formats = __commonJS({
     }
     var TIME = /^(\d\d):(\d\d):(\d\d(?:\.\d+)?)(z|([+-])(\d\d)(?::?(\d\d))?)?$/i;
     function getTime(strictTimeZone) {
-      return function time3(str) {
-        const matches = TIME.exec(str);
+      return function time3(str2) {
+        const matches = TIME.exec(str2);
         if (!matches)
           return false;
         const hr = +matches[1];
@@ -6716,8 +6716,8 @@ var require_formats = __commonJS({
     var DATE_TIME_SEPARATOR = /t|\s/i;
     function getDateTime(strictTimeZone) {
       const time3 = getTime(strictTimeZone);
-      return function date_time(str) {
-        const dateTime = str.split(DATE_TIME_SEPARATOR);
+      return function date_time(str2) {
+        const dateTime = str2.split(DATE_TIME_SEPARATOR);
         return dateTime.length === 2 && date3(dateTime[0]) && time3(dateTime[1]);
       };
     }
@@ -6742,13 +6742,13 @@ var require_formats = __commonJS({
     }
     var NOT_URI_FRAGMENT = /\/|:/;
     var URI = /^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)(?:\?(?:[a-z0-9\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'()*+,;=:@/?]|%[0-9a-f]{2})*)?$/i;
-    function uri(str) {
-      return NOT_URI_FRAGMENT.test(str) && URI.test(str);
+    function uri(str2) {
+      return NOT_URI_FRAGMENT.test(str2) && URI.test(str2);
     }
     var BYTE = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/gm;
-    function byte(str) {
+    function byte(str2) {
       BYTE.lastIndex = 0;
-      return BYTE.test(str);
+      return BYTE.test(str2);
     }
     var MIN_INT32 = -(2 ** 31);
     var MAX_INT32 = 2 ** 31 - 1;
@@ -6762,11 +6762,11 @@ var require_formats = __commonJS({
       return true;
     }
     var Z_ANCHOR = /[^\\]\\Z/;
-    function regex(str) {
-      if (Z_ANCHOR.test(str))
+    function regex(str2) {
+      if (Z_ANCHOR.test(str2))
         return false;
       try {
-        new RegExp(str);
+        new RegExp(str2);
         return true;
       } catch (e) {
         return false;
@@ -6888,6 +6888,9 @@ var require_dist = __commonJS({
     exports.default = formatsPlugin;
   }
 });
+
+// src/index.ts
+import { existsSync as existsSync2 } from "node:fs";
 
 // node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 import process2 from "node:process";
@@ -7105,14 +7108,14 @@ function promiseAllObject(promisesObj) {
 }
 function randomString(length = 10) {
   const chars = "abcdefghijklmnopqrstuvwxyz";
-  let str = "";
+  let str2 = "";
   for (let i = 0; i < length; i++) {
-    str += chars[Math.floor(Math.random() * chars.length)];
+    str2 += chars[Math.floor(Math.random() * chars.length)];
   }
-  return str;
+  return str2;
 }
-function esc(str) {
-  return JSON.stringify(str);
+function esc(str2) {
+  return JSON.stringify(str2);
 }
 var captureStackTrace = Error.captureStackTrace ? Error.captureStackTrace : (..._args) => {
 };
@@ -7200,8 +7203,8 @@ var getParsedType = (data) => {
 };
 var propertyKeyTypes = /* @__PURE__ */ new Set(["string", "number", "symbol"]);
 var primitiveTypes = /* @__PURE__ */ new Set(["string", "number", "bigint", "boolean", "symbol", "undefined"]);
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function escapeRegex(str2) {
+  return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 function clone(inst, def, params) {
   const cl = new inst._zod.constr(def ?? inst._zod.def);
@@ -21554,6 +21557,446 @@ function voltageRatingOf(r) {
   return void 0;
 }
 
+// src/jlc/db.ts
+import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
+import { homedir } from "node:os";
+import { join } from "node:path";
+var DEFAULT_LIMIT2 = 20;
+var VERIFY_FETCH_MIN = 200;
+var VERIFY_FETCH_MAX = 1e3;
+var RES_MULT = {
+  p: 1e-12,
+  n: 1e-9,
+  u: 1e-6,
+  "\xB5": 1e-6,
+  "\u03BC": 1e-6,
+  m: 1e-3,
+  k: 1e3,
+  K: 1e3,
+  M: 1e6,
+  G: 1e9
+};
+var CAP_MULT = {
+  p: 1e-12,
+  P: 1e-12,
+  n: 1e-9,
+  N: 1e-9,
+  u: 1e-6,
+  U: 1e-6,
+  "\xB5": 1e-6,
+  "\u03BC": 1e-6,
+  m: 1e-3
+};
+var RES_DESC_RE = /(\d+(?:\.\d+)?)\s*([pnuµμmkKMG])?\s*(?:Ω|Ω|[Oo][Hh][Mm][Ss]?\b)/;
+var CAP_DESC_RE = /(\d+(?:\.\d+)?)\s*([pPnNuUµμm])F(?![A-Za-z])/;
+var TOL_RE = /±\s*(\d+(?:\.\d+)?)\s*%/;
+var VOLT_RE = /(\d+(?:\.\d+)?)\s*([kK])?V(?![A-Za-z0-9])/;
+var TIER_NOTE = "local DB lists only Basic/Extended \u2014 part may be preferred-extended (fee waived); verify via live API";
+var requireModule = createRequire(import.meta.url);
+function loadSqlite() {
+  try {
+    return requireModule("node:sqlite");
+  } catch {
+    throw new Error(
+      `node:sqlite is unavailable on Node ${process.versions.node} \u2014 the local parts DB needs Node >= 22 (ideally >= 23.4 where node:sqlite is unflagged). Without it the server uses the live jlcsearch API.`
+    );
+  }
+}
+function defaultDbPath() {
+  const xdg = process.env.XDG_CACHE_HOME;
+  const cacheRoot = xdg && xdg.trim() !== "" ? xdg : join(homedir(), ".cache");
+  return join(cacheRoot, "jlcpcb-parts", "parts-fts5.db");
+}
+function openDbIfAvailable(explicitPath) {
+  const dbPath = explicitPath && explicitPath.trim() !== "" ? explicitPath.trim() : defaultDbPath();
+  try {
+    return new JlcDbClient({ dbPath });
+  } catch {
+    return null;
+  }
+}
+var JlcDbClient = class {
+  db;
+  stmts = /* @__PURE__ */ new Map();
+  constructor(opts) {
+    const sqlite = loadSqlite();
+    if (!existsSync(opts.dbPath)) {
+      throw new Error(
+        `Local parts DB not found at ${opts.dbPath} \u2014 run "npm run db:update" to download it (~840 MB download, ~4.9 GB extracted), or point JLCPCB_PARTS_DB at an existing copy.`
+      );
+    }
+    this.db = new sqlite.DatabaseSync(opts.dbPath, { readOnly: true });
+  }
+  /** Free-text search over the FTS index; short tokens fall back to LIKE. */
+  searchComponents(opts) {
+    return Promise.resolve(this.searchComponentsSync(opts));
+  }
+  /** Parametric resistor search — value verified from part data before returning. */
+  searchResistors(opts) {
+    return Promise.resolve(this.searchResistorsSync(opts));
+  }
+  /** Parametric capacitor search — value verified from part data before returning. */
+  searchCapacitors(opts) {
+    return Promise.resolve(this.searchCapacitorsSync(opts));
+  }
+  /** Exact LCSC lookup through the FTS index (equality alone = 1.2s full scan). */
+  getPart(lcsc) {
+    return Promise.resolve(this.getPartSync(lcsc));
+  }
+  /** Like getPart, but only when the part belongs to the matching category. */
+  getPassiveDetail(lcsc, kind) {
+    const part = this.getPartSync(lcsc);
+    if (!part) return Promise.resolve(null);
+    const want = kind === "resistor" ? "Resistors" : "Capacitors";
+    return Promise.resolve(part.category === want ? part : null);
+  }
+  listCategories() {
+    const rows = this.prepare(
+      `SELECT "First Category" AS category, "Second Category" AS subcategory FROM categories WHERE "First Category" <> '' OR "Second Category" <> '' ORDER BY 1, 2`
+    ).all();
+    return Promise.resolve(rows.map((r) => ({ category: str(r.category), subcategory: str(r.subcategory) })));
+  }
+  close() {
+    this.stmts.clear();
+    this.db.close();
+  }
+  // -------------------------------------------------------------------------
+  // Sync implementations
+  // -------------------------------------------------------------------------
+  prepare(sql) {
+    let stmt = this.stmts.get(sql);
+    if (stmt === void 0) {
+      stmt = this.db.prepare(sql);
+      this.stmts.set(sql, stmt);
+    }
+    return stmt;
+  }
+  queryParts(sql, params) {
+    const rows = this.prepare(sql).all(...params);
+    const parts = [];
+    for (const row of rows) {
+      const part = normalizeDbRow(row);
+      if (part) parts.push(part);
+    }
+    return parts;
+  }
+  searchComponentsSync(opts) {
+    const limit = clampLimit(opts.limit);
+    const q = opts.q?.trim() ?? "";
+    const tokens = q === "" ? [] : q.split(/\s+/);
+    const ftsTokens = tokens.filter(canTrigram);
+    const likeTokens = tokens.filter((t) => !canTrigram(t));
+    const pkg = opts.package?.trim();
+    const matchTerms = ftsTokens.map(ftsPhrase);
+    if (pkg && canTrigram(pkg)) matchTerms.push(`Package:${ftsPhrase(pkg)}`);
+    const where = [];
+    const params = [];
+    if (matchTerms.length > 0) {
+      where.push("parts MATCH ?");
+      params.push(matchTerms.join(" AND "));
+    }
+    for (const t of likeTokens) {
+      where.push(`${LIKE_HAYSTACK} LIKE ? ESCAPE '\\'`);
+      params.push(`%${escapeLike(t)}%`);
+    }
+    if (pkg) {
+      where.push(`"Package" = ? COLLATE NOCASE`);
+      params.push(pkg);
+    }
+    if (opts.minStock !== void 0 && opts.minStock > 0) {
+      where.push(`CAST("Stock" AS INTEGER) >= ?`);
+      params.push(Math.floor(opts.minStock));
+    }
+    if (opts.tier === "basic" || opts.tier === "preferred") {
+      where.push(`"Library Type" = 'Basic'`);
+    }
+    if (where.length === 0) return [];
+    const hasMatch = matchTerms.length > 0;
+    const sql = `SELECT * FROM parts WHERE ${where.join(" AND ")}` + (hasMatch ? ` ORDER BY ("Library Type" = 'Basic') DESC, CAST("Stock" AS INTEGER) DESC` : "") + ` LIMIT ?`;
+    params.push(limit);
+    const parts = this.queryParts(sql, params);
+    if (!hasMatch) parts.sort((a, b) => b.stock - a.stock);
+    return parts;
+  }
+  searchResistorsSync(opts) {
+    const limit = clampLimit(opts.limit);
+    const parts = this.parametricFetch("Resistors", resistanceVariants(opts.ohms), opts.package, limit);
+    const out = [];
+    for (const part of parts) {
+      if (opts.ohms !== void 0) {
+        const ohms = readResistance(part);
+        if (ohms === void 0 || !relEqual(ohms, opts.ohms, 5e-3)) continue;
+      }
+      if (opts.maxTolerance !== void 0) {
+        const tolPct = readTolerancePct(part);
+        if (tolPct !== void 0 && tolPct / 100 > opts.maxTolerance * (1 + 1e-9)) continue;
+      }
+      out.push(part);
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+  searchCapacitorsSync(opts) {
+    const limit = clampLimit(opts.limit);
+    const parts = this.parametricFetch("Capacitors", capacitanceVariants(opts.farads), opts.package, limit);
+    const out = [];
+    for (const part of parts) {
+      if (opts.farads !== void 0) {
+        const farads = readCapacitance(part);
+        if (farads === void 0 || !relEqual(farads, opts.farads, 0.05)) continue;
+      }
+      if (opts.minVoltage !== void 0) {
+        const rating = readVoltage(part);
+        if (rating !== void 0 && rating < opts.minVoltage) continue;
+      }
+      out.push(part);
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+  /**
+   * Shared parametric query: category (FTS + exact pin) + optional value
+   * variants (ORed phrases) + optional package (FTS + exact pin), stock-sorted.
+   * Fetches limit×10 (min 200) rows of headroom because trigram substring
+   * matches include wrong values ("10kΩ" ⊂ "510kΩ") that verification drops.
+   */
+  parametricFetch(category, valueVariants, pkgRaw, limit) {
+    const matchTerms = [`"First Category": ${ftsPhrase(category)}`];
+    if (valueVariants.length > 0) {
+      matchTerms.push(`(${valueVariants.map(ftsPhrase).join(" OR ")})`);
+    }
+    const pkg = pkgRaw?.trim();
+    if (pkg && canTrigram(pkg)) matchTerms.push(`Package:${ftsPhrase(pkg)}`);
+    const where = ["parts MATCH ?", `"First Category" = ?`];
+    const params = [matchTerms.join(" AND "), category];
+    if (pkg) {
+      where.push(`"Package" = ? COLLATE NOCASE`);
+      params.push(pkg);
+    }
+    const fetchLimit = Math.min(VERIFY_FETCH_MAX, Math.max(VERIFY_FETCH_MIN, limit * 10));
+    params.push(fetchLimit);
+    const sql = `SELECT * FROM parts WHERE ${where.join(" AND ")} ORDER BY ("Library Type" = 'Basic') DESC, CAST("Stock" AS INTEGER) DESC LIMIT ?`;
+    return this.queryParts(sql, params);
+  }
+  getPartSync(lcsc) {
+    const id = toLcscId(lcsc);
+    const canonical = `C${id}`;
+    if (!canTrigram(canonical)) {
+      const parts2 = this.queryParts(`SELECT * FROM parts WHERE "LCSC Part" = ? LIMIT 1`, [canonical]);
+      return parts2[0] ?? null;
+    }
+    const parts = this.queryParts(
+      `SELECT * FROM parts WHERE parts MATCH ? AND "LCSC Part" = ? LIMIT 1`,
+      [`"LCSC Part": ${ftsPhrase(canonical)}`, canonical]
+    );
+    return parts[0] ?? null;
+  }
+};
+var LIKE_HAYSTACK = `("LCSC Part" || ' ' || "MFR.Part" || ' ' || "Package" || ' ' || "Manufacturer" || ' ' || "Description")`;
+function str(v) {
+  return typeof v === "string" ? v : v == null ? "" : String(v);
+}
+function normalizeDbRow(row) {
+  let lcscId;
+  try {
+    lcscId = toLcscId(str(row["LCSC Part"]));
+  } catch {
+    return null;
+  }
+  const category = str(row["First Category"]);
+  const subcategory = str(row["Second Category"]);
+  const description = str(row["Description"]);
+  const tier = str(row["Library Type"]) === "Basic" ? "basic" : "extended";
+  const priceBreaks = parseDbPriceBreaks(str(row["Price"]));
+  const stockNum = Number(str(row["Stock"]));
+  const attributes = extractAttributes({
+    category,
+    description,
+    manufacturer: str(row["Manufacturer"]),
+    datasheet: str(row["Datasheet"]),
+    tier
+  });
+  const part = {
+    lcsc: `C${lcscId}`,
+    lcscId,
+    mfr: str(row["MFR.Part"]),
+    description,
+    package: str(row["Package"]),
+    stock: Number.isFinite(stockNum) && stockNum > 0 ? Math.floor(stockNum) : 0,
+    tier,
+    priceBreaks,
+    unitPrice: priceBreaks.length > 0 ? priceBreaks[0].price : null,
+    productUrl: `https://jlcpcb.com/partdetail/C${lcscId}`
+  };
+  if (category !== "") part.category = category;
+  if (subcategory !== "") part.subcategory = subcategory;
+  if (attributes !== void 0) part.attributes = attributes;
+  return part;
+}
+function parseDbPriceBreaks(text) {
+  if (text.trim() === "") return [];
+  const breaks = [];
+  for (const seg of text.split(",")) {
+    const m = /^\s*(\d+)\s*-\s*(\d*)\s*:\s*(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*$/.exec(seg);
+    if (!m) continue;
+    const price = Number(m[3]);
+    if (!Number.isFinite(price) || price < 0) continue;
+    const qFrom = Number(m[1]);
+    breaks.push({
+      qFrom: Number.isFinite(qFrom) && qFrom >= 1 ? qFrom : 1,
+      qTo: m[2] === "" ? null : Number(m[2]),
+      price
+    });
+  }
+  breaks.sort((a, b) => a.qFrom - b.qFrom);
+  return breaks;
+}
+function extractAttributes(input) {
+  const attrs = {};
+  const isResistor = input.category === "Resistors";
+  const isCapacitor = input.category === "Capacitors";
+  if (isResistor) {
+    const m = RES_DESC_RE.exec(input.description);
+    if (m) attrs.Resistance = `${m[1]}${m[2] ?? ""}\u03A9`;
+  }
+  if (isCapacitor) {
+    const m = CAP_DESC_RE.exec(input.description);
+    if (m) attrs.Capacitance = `${m[1]}${m[2]}F`;
+  }
+  if (isResistor || isCapacitor) {
+    const tol = TOL_RE.exec(input.description);
+    if (tol) attrs.Tolerance = `\xB1${tol[1]}%`;
+    const volt = VOLT_RE.exec(input.description);
+    if (volt) attrs["Voltage Rated"] = `${volt[1]}${volt[2] ? "k" : ""}V`;
+  }
+  if (input.manufacturer !== "") attrs.Manufacturer = input.manufacturer;
+  if (input.datasheet !== "") attrs.Datasheet = input.datasheet;
+  if (input.tier === "extended") attrs["Tier Note"] = TIER_NOTE;
+  return Object.keys(attrs).length > 0 ? attrs : void 0;
+}
+function canTrigram(token) {
+  return [...token].length >= 3;
+}
+function ftsPhrase(token) {
+  return `"${token.replace(/"/g, '""')}"`;
+}
+function escapeLike(t) {
+  return t.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+function clampLimit(limit) {
+  const v = limit ?? DEFAULT_LIMIT2;
+  return Number.isFinite(v) ? Math.max(1, Math.floor(v)) : DEFAULT_LIMIT2;
+}
+function trimNum2(n) {
+  return String(Number(n.toFixed(3)));
+}
+function resistanceVariants(ohms) {
+  if (ohms === void 0) return [];
+  let scaled;
+  let suffix;
+  if (ohms >= 1e6) {
+    scaled = ohms / 1e6;
+    suffix = "M";
+  } else if (ohms >= 1e3) {
+    scaled = ohms / 1e3;
+    suffix = "k";
+  } else if (ohms >= 1) {
+    scaled = ohms;
+    suffix = "";
+  } else {
+    scaled = ohms * 1e3;
+    suffix = "m";
+  }
+  const num = trimNum2(scaled);
+  return [`${num}${suffix}\u03A9`, `${num}${suffix}`].filter(canTrigram);
+}
+function capacitanceVariants(farads) {
+  if (farads === void 0) return [];
+  const out = [];
+  if (farads >= 1e-6) {
+    const uf = trimNum2(farads * 1e6);
+    out.push(`${uf}uF`, `${uf}\xB5F`);
+  } else if (farads >= 1e-9) {
+    out.push(`${trimNum2(farads * 1e9)}nF`);
+    const uf = trimNum2(farads * 1e6);
+    out.push(`${uf}uF`, `${uf}\xB5F`);
+  } else {
+    out.push(`${trimNum2(farads * 1e12)}pF`);
+  }
+  return out.filter(canTrigram);
+}
+function relEqual(a, b, tol) {
+  return Math.abs(a - b) <= tol * Math.max(Math.abs(a), Math.abs(b)) + Number.EPSILON;
+}
+function readResistance(part) {
+  const m = RES_DESC_RE.exec(part.attributes?.Resistance ?? part.description);
+  if (!m) return void 0;
+  return Number(m[1]) * (m[2] ? RES_MULT[m[2]] : 1);
+}
+function readCapacitance(part) {
+  const m = CAP_DESC_RE.exec(part.attributes?.Capacitance ?? part.description);
+  if (!m) return void 0;
+  return Number(m[1]) * CAP_MULT[m[2]];
+}
+function readTolerancePct(part) {
+  const m = TOL_RE.exec(part.attributes?.Tolerance ?? part.description);
+  return m ? Number(m[1]) : void 0;
+}
+function readVoltage(part) {
+  const m = VOLT_RE.exec(part.attributes?.["Voltage Rated"] ?? part.description);
+  if (!m) return void 0;
+  const v = Number(m[1]);
+  if (!Number.isFinite(v)) return void 0;
+  return m[2] ? v * 1e3 : v;
+}
+
+// src/jlc/hybrid.ts
+var HybridJlcClient = class {
+  constructor(db, api) {
+    this.db = db;
+    this.api = api;
+  }
+  db;
+  api;
+  searchComponents(opts) {
+    return this.db.searchComponents(opts);
+  }
+  searchResistors(opts) {
+    return this.db.searchResistors(opts);
+  }
+  searchCapacitors(opts) {
+    return this.db.searchCapacitors(opts);
+  }
+  getPassiveDetail(lcsc, kind) {
+    return this.db.getPassiveDetail(lcsc, kind);
+  }
+  listCategories() {
+    return this.db.listCategories();
+  }
+  /**
+   * Live API first — it has fresher stock and can distinguish preferred-extended
+   * parts, both of which matter most at the moment of choosing a part to order.
+   * Any API failure (or an unknown part) falls back to the local snapshot, which
+   * is marked so callers know the stock figure is not live.
+   */
+  async getPart(lcsc) {
+    try {
+      const live = await this.api.getPart(lcsc);
+      if (live) return live;
+    } catch {
+    }
+    const local = await this.db.getPart(lcsc);
+    if (local) {
+      return {
+        ...local,
+        attributes: { ...local.attributes, "Data Source": "local-db (snapshot stock)" }
+      };
+    }
+    return null;
+  }
+};
+
 // src/tools/common.ts
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -22246,7 +22689,7 @@ function err(message) {
 function errorMessage(e) {
   return e instanceof Error ? e.message : String(e);
 }
-function clampLimit(value, fallback) {
+function clampLimit2(value, fallback) {
   const v = value ?? fallback;
   return Math.min(50, Math.max(1, Math.floor(v)));
 }
@@ -22418,7 +22861,7 @@ function registerSearchParts(server, deps) {
           package: pkg,
           tier,
           minStock: min_stock,
-          limit: clampLimit(limit, 10)
+          limit: clampLimit2(limit, 10)
         });
         if (parts.length === 0) {
           return ok(
@@ -22461,7 +22904,7 @@ function registerSearchPassives(server, deps) {
       } catch (e) {
         return err(`Could not parse "${value}": ${errorMessage(e)}`);
       }
-      const cappedLimit = clampLimit(limit, 10);
+      const cappedLimit = clampLimit2(limit, 10);
       try {
         if (kind === "resistor") {
           if (parsed.kind !== "resistance") {
@@ -22560,7 +23003,7 @@ function unitPriceAtQty(part, qty) {
   }
   return (best ?? sorted[0]).price;
 }
-var RES_MULT = {
+var RES_MULT2 = {
   p: 1e-12,
   n: 1e-9,
   u: 1e-6,
@@ -22574,7 +23017,7 @@ var RES_MULT = {
   M: 1e6,
   G: 1e9
 };
-var CAP_MULT = {
+var CAP_MULT2 = {
   p: 1e-12,
   P: 1e-12,
   n: 1e-9,
@@ -22586,22 +23029,22 @@ var CAP_MULT = {
   m: 1e-3
 };
 var OHM_UNIT_RE = /(?:Ω|Ω|ohms?)\s*$/i;
-var RES_DESC_RE = /(\d+(?:\.\d+)?)\s*([pnuµμmkKMG])?\s*(?:Ω|Ω|[Oo][Hh][Mm][Ss]?\b)/;
-var CAP_DESC_RE = /(\d+(?:\.\d+)?)\s*([pPnNuUµμm])F(?![A-Za-z])/;
-var TOL_RE = /±\s*(\d+(?:\.\d+)?)\s*%/;
+var RES_DESC_RE2 = /(\d+(?:\.\d+)?)\s*([pnuµμmkKMG])?\s*(?:Ω|Ω|[Oo][Hh][Mm][Ss]?\b)/;
+var CAP_DESC_RE2 = /(\d+(?:\.\d+)?)\s*([pPnNuUµμm])F(?![A-Za-z])/;
+var TOL_RE2 = /±\s*(\d+(?:\.\d+)?)\s*%/;
 function parseResistanceText(text) {
   let t = text.trim().replace(OHM_UNIT_RE, "").trim();
   t = t.replace(/R$/i, "").trim();
   const m = /^(\d+(?:\.\d+)?)\s*([pnuµμmkKMG])?$/.exec(t);
   if (!m) return void 0;
-  const mult = m[2] ? RES_MULT[m[2]] : 1;
+  const mult = m[2] ? RES_MULT2[m[2]] : 1;
   return Number(m[1]) * mult;
 }
 function parseCapacitanceText(text) {
   const t = text.trim().replace(/F(?:arads?)?\s*$/i, "").trim();
   const m = /^(\d+(?:\.\d+)?)\s*([pPnNuUµμm])?$/.exec(t);
   if (!m) return void 0;
-  const mult = m[2] ? CAP_MULT[m[2]] : 1;
+  const mult = m[2] ? CAP_MULT2[m[2]] : 1;
   return Number(m[1]) * mult;
 }
 function attrValue(part, keyRe) {
@@ -22617,9 +23060,9 @@ function partResistance(part) {
     const parsed = parseResistanceText(attr);
     if (parsed !== void 0) return parsed;
   }
-  const m = RES_DESC_RE.exec(part.description);
+  const m = RES_DESC_RE2.exec(part.description);
   if (!m) return void 0;
-  const mult = m[2] ? RES_MULT[m[2]] : 1;
+  const mult = m[2] ? RES_MULT2[m[2]] : 1;
   return Number(m[1]) * mult;
 }
 function partCapacitance(part) {
@@ -22628,9 +23071,9 @@ function partCapacitance(part) {
     const parsed = parseCapacitanceText(attr);
     if (parsed !== void 0) return parsed;
   }
-  const m = CAP_DESC_RE.exec(part.description);
+  const m = CAP_DESC_RE2.exec(part.description);
   if (!m) return void 0;
-  const mult = m[2] ? CAP_MULT[m[2]] : 1;
+  const mult = m[2] ? CAP_MULT2[m[2]] : 1;
   return Number(m[1]) * mult;
 }
 function partTolerancePct(part) {
@@ -22639,10 +23082,10 @@ function partTolerancePct(part) {
     const m2 = /±?\s*(\d+(?:\.\d+)?)\s*%/.exec(attr);
     if (m2) return Number(m2[1]);
   }
-  const m = TOL_RE.exec(part.description);
+  const m = TOL_RE2.exec(part.description);
   return m ? Number(m[1]) : void 0;
 }
-function relEqual(a, b, tol) {
+function relEqual2(a, b, tol) {
   return Math.abs(a - b) <= tol * Math.max(Math.abs(a), Math.abs(b)) + Number.EPSILON;
 }
 function normalizePackage(pkg) {
@@ -22689,7 +23132,7 @@ function applyHardFilters(line, part) {
     const ohms = partResistance(part);
     if (ohms === void 0) {
       warnings.push("value unverified \u2014 could not read resistance from part data");
-    } else if (!relEqual(ohms, parsed.ohms, RESISTANCE_REL_TOL)) {
+    } else if (!relEqual2(ohms, parsed.ohms, RESISTANCE_REL_TOL)) {
       dropReasons.push(`resistance mismatch: part is ${ohms}\u03A9, line wants ${parsed.ohms}\u03A9`);
     }
     if (parsed.tolerancePct !== void 0) {
@@ -22704,7 +23147,7 @@ function applyHardFilters(line, part) {
     const farads = partCapacitance(part);
     if (farads === void 0) {
       warnings.push("value unverified \u2014 could not read capacitance from part data");
-    } else if (!relEqual(farads, parsed.farads, CAPACITANCE_REL_TOL)) {
+    } else if (!relEqual2(farads, parsed.farads, CAPACITANCE_REL_TOL)) {
       dropReasons.push(`capacitance mismatch: part is ${farads}F, line wants ${parsed.farads}F`);
     }
   }
@@ -22733,12 +23176,12 @@ function tierReason(tier) {
 function round4(n) {
   return Math.round(n * 1e4) / 1e4;
 }
-function trimNum2(n) {
+function trimNum3(n) {
   return String(Math.round(n * 10) / 10);
 }
 function formatStock2(stock) {
-  if (stock >= 1e6) return `${trimNum2(stock / 1e6)}M`;
-  if (stock >= 1e3) return `${trimNum2(stock / 1e3)}k`;
+  if (stock >= 1e6) return `${trimNum3(stock / 1e6)}M`;
+  if (stock >= 1e3) return `${trimNum3(stock / 1e3)}k`;
   return String(stock);
 }
 function fmtUsd(p) {
@@ -23155,7 +23598,7 @@ function registerFindAlternatives(server, deps) {
             limit: 50
           });
         }
-        const maxCandidates = clampLimit(limit, 5);
+        const maxCandidates = clampLimit2(limit, 5);
         const others = pool.filter((p) => p.lcscId !== target.lcscId);
         const candidates = rankCandidates(line, others, {
           ...DEFAULT_SUGGEST_OPTIONS,
@@ -23300,7 +23743,7 @@ function registerSuggestBomParts(server, deps) {
       const opts = {
         boardQty: board_qty ?? DEFAULT_SUGGEST_OPTIONS.boardQty,
         stockMultiple: stock_multiple ?? DEFAULT_SUGGEST_OPTIONS.stockMultiple,
-        maxCandidates: clampLimit(max_candidates, DEFAULT_SUGGEST_OPTIONS.maxCandidates)
+        maxCandidates: clampLimit2(max_candidates, DEFAULT_SUGGEST_OPTIONS.maxCandidates)
       };
       try {
         const result = await suggestForBom(lines, deps.client, opts);
@@ -23465,8 +23908,13 @@ LCSC numbers look like "C25804". Stock should comfortably exceed needed quantity
 Typical workflow: analyze_kicad (parse schematic/BOM) \u2192 suggest_bom_parts (ranked
 candidates + cost) \u2192 review needs_review / no_match lines with search_parts,
 search_passives, find_alternatives \u2192 estimate_assembly_cost for the final picks.`;
+function defaultClient() {
+  const api = new JlcClient();
+  const db = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
+  return db ? new HybridJlcClient(db, api) : api;
+}
 function buildServer(deps = {}) {
-  const client = deps.client ?? new JlcClient();
+  const client = deps.client ?? defaultClient();
   const toolDeps = { client };
   const server = new McpServer(
     { name: "jlcpcb-parts", version: "0.1.0" },
@@ -23487,7 +23935,9 @@ async function main() {
   const server = buildServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("jlcpcb-parts MCP server running on stdio");
+  const dbPath = process.env.JLCPCB_PARTS_DB || defaultDbPath();
+  const mode = existsSync2(dbPath) ? `local DB (${dbPath}) + live API verify` : "live jlcsearch API";
+  console.error(`jlcpcb-parts MCP server running on stdio \u2014 parts data: ${mode}`);
 }
 main().catch((e) => {
   console.error("jlcpcb-parts fatal:", e);

@@ -8,6 +8,8 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { analyzeKicadFile } from "../src/kicad/index.js";
 import { JlcClient } from "../src/jlc/client.js";
+import { openDbIfAvailable } from "../src/jlc/db.js";
+import { HybridJlcClient } from "../src/jlc/hybrid.js";
 import { suggestForBom, DEFAULT_SUGGEST_OPTIONS } from "../src/engine/index.js";
 import type { LineSuggestion } from "../src/types.js";
 
@@ -24,7 +26,9 @@ const text = await readFile(path, "utf8");
 const lines = analyzeKicadFile(text, path);
 console.log(`Parsed ${lines.length} BOM lines from ${path}\n`);
 
-const client = new JlcClient();
+const localDb = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
+const client = localDb ? new HybridJlcClient(localDb, new JlcClient()) : new JlcClient();
+console.log(localDb ? "data source: local catalog DB + live API verify\n" : "data source: live jlcsearch API\n");
 const suggestion = await suggestForBom(lines, client, {
   ...DEFAULT_SUGGEST_OPTIONS,
   boardQty,

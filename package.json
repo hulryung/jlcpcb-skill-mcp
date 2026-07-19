@@ -19,7 +19,9 @@
     "test:watch": "vitest",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "demo": "tsx scripts/demo.ts"
+    "demo": "tsx scripts/demo.ts",
+    "db:update": "tsx scripts/update-db.ts",
+    "build:d1-db": "tsx scripts/build-d1-db.ts"
   },
   "engines": {
     "node": ">=18"

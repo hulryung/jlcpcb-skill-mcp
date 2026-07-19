@@ -1,5 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { JlcClient } from "./jlc/client.js";
+import { openDbIfAvailable } from "./jlc/db.js";
+import { HybridJlcClient } from "./jlc/hybrid.js";
 import type { JlcClientLike, ToolDeps } from "./tools/common.js";
 import { registerSearchParts } from "./tools/search-parts.js";
 import { registerSearchPassives } from "./tools/search-passives.js";
@@ -28,8 +30,19 @@ Typical workflow: analyze_kicad (parse schematic/BOM) → suggest_bom_parts (ran
 candidates + cost) → review needs_review / no_match lines with search_parts,
 search_passives, find_alternatives → estimate_assembly_cost for the final picks.`;
 
+/**
+ * Default data source: if a local catalog DB is present (JLCPCB_PARTS_DB or the
+ * default cache path), search runs offline over the full catalog with the live
+ * API reserved for final stock/tier verification; otherwise the live API alone.
+ */
+function defaultClient(): JlcClientLike {
+  const api = new JlcClient();
+  const db = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
+  return db ? new HybridJlcClient(db, api) : api;
+}
+
 export function buildServer(deps: BuildServerDeps = {}): McpServer {
-  const client: JlcClientLike = deps.client ?? new JlcClient();
+  const client: JlcClientLike = deps.client ?? defaultClient();
   const toolDeps: ToolDeps = { client };
 
   const server = new McpServer(
