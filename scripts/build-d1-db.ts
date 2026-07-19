@@ -108,11 +108,18 @@ if (wantDump) {
     console.error("sqlite3 .dump failed (is the sqlite3 CLI installed?):", res.stderr);
     process.exit(1);
   }
-  // The `.dump parts` output includes the FTS shadow tables (parts_fts_*) and the
-  // virtual table; strip those so the bulk import is a clean plain-table load.
+  // Clean the `.dump` output for D1 `execute`:
+  //  - drop the FTS shadow/virtual tables (parts_fts_*) — FTS is built separately;
+  //  - drop transaction/PRAGMA control statements — D1 rejects BEGIN/COMMIT/
+  //    SAVEPOINT and doesn't want PRAGMA in an executed batch.
   const cleaned = readFileSync(dumpPath, "utf8")
     .split("\n")
-    .filter((l) => !/parts_fts/i.test(l) && !/VIRTUAL TABLE/i.test(l))
+    .filter(
+      (l) =>
+        !/parts_fts/i.test(l) &&
+        !/VIRTUAL TABLE/i.test(l) &&
+        !/^\s*(BEGIN TRANSACTION|COMMIT|ROLLBACK|SAVEPOINT|RELEASE|PRAGMA)\b/i.test(l),
+    )
     .join("\n");
   writeFileSync(dumpPath, cleaned);
   writeFileSync(

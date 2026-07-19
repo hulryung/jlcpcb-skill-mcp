@@ -116,15 +116,17 @@ claude mcp add jlcpcb-parts -- npx -y jlcpcb-parts-mcp
 
 npx caches the package, so it does not reinstall every session. The skill must be distributed separately (option A covers that), so this fits MCP-only consumers. Note `npx github:owner/repo`-style direct GitHub execution is not supported.
 
-**C) Remote HTTP server (zero install)**
+**C) Hosted catalog API on Cloudflare D1 (zero download)**
 
-The server is currently stdio-only, but adding the MCP SDK's StreamableHTTP transport and hosting it (your own server, Cloudflare Workers, …) lets a whole team connect with one line and no Node install:
+A [Cloudflare Worker](worker/) serves the full in-stock JLCPCB catalog (~693k parts) from D1, so teammates get catalog search without the local DB download — they just point the local MCP server at the URL. A live instance runs at `https://jlcpcb-parts-api.dkkang7484.workers.dev`:
 
 ```bash
-claude mcp add --transport http jlcpcb-parts https://jlcpcb-mcp.example.com/mcp
+claude mcp add --scope user jlcpcb-parts \
+  -e JLCPCB_API_URL=https://jlcpcb-parts-api.dkkang7484.workers.dev \
+  -- node /path/to/jlcpcb-skill-mcp/dist/index.js
 ```
 
-Most convenient for in-house sharing, but you operate the hosting, and the skill still ships separately (pair with option A). Adding the HTTP transport is a small task if needed.
+The KiCad file tools still run locally (a remote server can't read your `.kicad_sch`); only the parts data comes from D1. `get_part` proxies live jlcsearch for fresh stock + preferred tier. Deploy your own with `npm run build:d1-db` + the runbook in [worker/README.md](worker/README.md) — it fits the D1 **free plan** (~330 MB < 500 MB).
 
 ## Local parts database (optional)
 

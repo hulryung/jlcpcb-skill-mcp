@@ -116,15 +116,17 @@ claude mcp add jlcpcb-parts -- npx -y jlcpcb-parts-mcp
 
 npx가 캐시하므로 세션마다 재설치하지 않습니다. 스킬은 별도로 배포해야 하므로(A안이 해결) MCP만 필요할 때 적합합니다. `npx github:owner/repo` 형태의 GitHub 직접 실행은 지원되지 않습니다.
 
-**C) 원격 HTTP 서버 (설치 제로)**
+**C) Cloudflare D1 호스팅 카탈로그 API (다운로드 제로)**
 
-현재 서버는 stdio 전용이지만, MCP SDK의 StreamableHTTP 트랜스포트를 붙여 서버(자체 서버, Cloudflare Workers 등)에 올리면 팀 전체가 Node 설치 없이 URL만으로 씁니다:
+[Cloudflare Worker](worker/)가 JLCPCB 재고 부품 전체(약 693K개)를 D1에서 서비스합니다. 팀원은 로컬 DB를 받지 않고 URL만 지정하면 됩니다. 라이브 인스턴스: `https://jlcpcb-parts-api.dkkang7484.workers.dev`
 
 ```bash
-claude mcp add --transport http jlcpcb-parts https://jlcpcb-mcp.example.com/mcp
+claude mcp add --scope user jlcpcb-parts \
+  -e JLCPCB_API_URL=https://jlcpcb-parts-api.dkkang7484.workers.dev \
+  -- node /path/to/jlcpcb-skill-mcp/dist/index.js
 ```
 
-사내 공유에 가장 편하지만 호스팅 운영이 필요하고, 스킬은 역시 별도 배포(A안 병행)입니다. 필요 시 HTTP 트랜스포트 추가는 작은 작업입니다.
+KiCad 파일 도구는 로컬에서 돌고(원격 서버는 사용자의 `.kicad_sch`를 못 읽음) 부품 데이터만 D1에서 옵니다. `get_part`는 최신 재고·preferred 티어를 위해 라이브 jlcsearch를 프록시합니다. 직접 배포하려면 `npm run build:d1-db` + [worker/README.md](worker/README.md)의 런북 — D1 **무료 플랜**에 들어갑니다(약 330MB < 500MB).
 
 ## 로컬 부품 DB (선택)
 

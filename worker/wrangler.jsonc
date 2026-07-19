@@ -10,8 +10,7 @@
     {
       "binding": "DB",
       "database_name": "jlcpcb-parts",
-      // Filled in by `wrangler d1 create jlcpcb-parts` (or paste an existing id).
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "570a2012-6e2e-4de4-a0ef-0974bebc21b4"
     }
   ]
 }
