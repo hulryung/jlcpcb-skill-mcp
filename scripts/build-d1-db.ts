@@ -16,7 +16,7 @@ import { DatabaseSync } from "node:sqlite";
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { statSync, rmSync, existsSync } from "node:fs";
+import { statSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
 const flag = (n: string, d?: string) => {
@@ -24,6 +24,9 @@ const flag = (n: string, d?: string) => {
   return i >= 0 && args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : d;
 };
 const wantDump = args.includes("--dump");
+// --slice N builds a tiny validation DB (N in-stock rows) to smoke-test the D1
+// import pipeline cheaply before importing the full ~693k-row catalog.
+const slice = flag("slice") ? Math.max(1, parseInt(flag("slice")!, 10)) : 0;
 
 const cacheDir = process.env.XDG_CACHE_HOME
   ? join(process.env.XDG_CACHE_HOME, "jlcpcb-parts")
@@ -54,12 +57,12 @@ db.exec(`CREATE TABLE parts(
   price TEXT, stock INTEGER, datasheet TEXT)`);
 
 db.exec(`ATTACH DATABASE '${src.replace(/'/g, "''")}' AS full`);
-console.log("Copying in-stock rows (Stock > 0)…");
+console.log(slice ? `Copying ${slice} in-stock rows (slice)…` : "Copying in-stock rows (Stock > 0)…");
 db.exec(`INSERT OR IGNORE INTO parts SELECT
   "LCSC Part","MFR.Part","Package","First Category","Second Category",
   "Manufacturer","Library Type","Description","Price",
   CAST("Stock" AS INTEGER),"Datasheet"
-  FROM full.parts WHERE CAST("Stock" AS INTEGER) > 0`);
+  FROM full.parts WHERE CAST("Stock" AS INTEGER) > 0${slice ? ` LIMIT ${slice}` : ""}`);
 db.exec("DETACH DATABASE full");
 
 db.exec(`CREATE INDEX ix_pkg ON parts(package)`);
@@ -92,14 +95,34 @@ console.log(
 );
 
 if (wantDump) {
-  console.log(`Writing SQL dump → ${dumpPath} (for \`wrangler d1 import\`)…`);
-  const res = spawnSync("sqlite3", [out, `.output ${dumpPath}`, ".dump", ".exit"], {
+  // D1 import is robust for plain tables but flaky for FTS5 virtual tables, so
+  // split: (1) parts table + indexes as the bulk import, (2) a tiny FTS setup
+  // file to run via `wrangler d1 execute` AFTER the import (builds the index
+  // server-side from the imported content table).
+  const ftsPath = out.replace(/\.db$/, "") + "-fts.sql";
+  console.log(`Writing parts dump → ${dumpPath} …`);
+  const res = spawnSync("sqlite3", [out, `.output ${dumpPath}`, ".dump parts", ".exit"], {
     encoding: "utf8",
   });
   if (res.status !== 0) {
     console.error("sqlite3 .dump failed (is the sqlite3 CLI installed?):", res.stderr);
     process.exit(1);
   }
-  console.log(`Dump: ${dumpPath} (${mb(statSync(dumpPath).size)})`);
-  console.log("Import with:  wrangler d1 import <DB_NAME> --file=" + dumpPath);
+  // The `.dump parts` output includes the FTS shadow tables (parts_fts_*) and the
+  // virtual table; strip those so the bulk import is a clean plain-table load.
+  const cleaned = readFileSync(dumpPath, "utf8")
+    .split("\n")
+    .filter((l) => !/parts_fts/i.test(l) && !/VIRTUAL TABLE/i.test(l))
+    .join("\n");
+  writeFileSync(dumpPath, cleaned);
+  writeFileSync(
+    ftsPath,
+    `CREATE VIRTUAL TABLE IF NOT EXISTS parts_fts USING fts5(\n` +
+      `  lcsc, mfr, description, manufacturer, content='parts', content_rowid='rowid');\n` +
+      `INSERT INTO parts_fts(parts_fts) VALUES('rebuild');\n`,
+  );
+  console.log(`Parts dump: ${dumpPath} (${mb(statSync(dumpPath).size)})`);
+  console.log(`FTS setup:  ${ftsPath}`);
+  console.log("Import:  wrangler d1 import <DB_NAME> --file=" + dumpPath);
+  console.log("Then:    wrangler d1 execute <DB_NAME> --remote --file=" + ftsPath);
 }
