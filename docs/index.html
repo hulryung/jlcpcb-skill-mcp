@@ -3,792 +3,136 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="KiCad 회로도에서 JLCPCB 조립 부품 선정과 비용 견적까지 — MCP 서버와 Claude 스킬로 자동화합니다.">
 <title>JLCPCB Parts MCP + Skill</title>
+<meta name="description" content="KiCad 회로에 맞는 JLCPCB/LCSC 부품을 조립 비용까지 고려해 추천하는 Claude Code 플러그인">
 <style>
-/* ---- design tokens: light base ---- */
-:root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  --bg: #f6f9f7;
-  --raised: #ffffff;
-  --fg: #1a2620;
-  --muted: #5f7068;
-  --border: #dee7e1;
-  --border-strong: #c7d5cc;
-  --accent: #0e7a55;
-  --accent-strong: #0a5f43;
-  --accent-soft: rgba(16, 124, 88, 0.08);
-  --code-bg: #0e1813;
-  --code-fg: #d6e4da;
-  --code-border: #22332a;
-  --warn: #8a5a00;
-  --warn-soft: rgba(180, 124, 0, 0.12);
-  --icon-sun: none;
-  --icon-moon: block;
-  color-scheme: light;
+:root{
+  --bg:#faf9f7; --fg:#2b2a27; --muted:#6f6b63; --line:#e4e1da;
+  --accent:#0d7a5f; --accent-fg:#ffffff; --code-bg:#f0eee9; --card:#ffffff;
 }
-/* OS preference */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1411;
-    --raised: #131c17;
-    --fg: #e4ece7;
-    --muted: #95a69c;
-    --border: #243029;
-    --border-strong: #33443a;
-    --accent: #4cc596;
-    --accent-strong: #6ad3a9;
-    --accent-soft: rgba(76, 197, 150, 0.12);
-    --code-bg: #0a100d;
-    --code-fg: #cfe0d5;
-    --code-border: #243029;
-    --warn: #e0b34d;
-    --warn-soft: rgba(224, 179, 77, 0.14);
-    --icon-sun: block;
-    --icon-moon: none;
-    color-scheme: dark;
-  }
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#171614; --fg:#e8e6e1; --muted:#a09b91; --line:#33312c;
+         --accent:#3ecf9a; --accent-fg:#0e2c22; --code-bg:#232019; --card:#1e1c19; }
 }
-/* explicit toggle overrides — must win over the media query in both directions */
-:root[data-theme="light"] {
-  --bg: #f6f9f7;
-  --raised: #ffffff;
-  --fg: #1a2620;
-  --muted: #5f7068;
-  --border: #dee7e1;
-  --border-strong: #c7d5cc;
-  --accent: #0e7a55;
-  --accent-strong: #0a5f43;
-  --accent-soft: rgba(16, 124, 88, 0.08);
-  --code-bg: #0e1813;
-  --code-fg: #d6e4da;
-  --code-border: #22332a;
-  --warn: #8a5a00;
-  --warn-soft: rgba(180, 124, 0, 0.12);
-  --icon-sun: none;
-  --icon-moon: block;
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
-  --bg: #0d1411;
-  --raised: #131c17;
-  --fg: #e4ece7;
-  --muted: #95a69c;
-  --border: #243029;
-  --border-strong: #33443a;
-  --accent: #4cc596;
-  --accent-strong: #6ad3a9;
-  --accent-soft: rgba(76, 197, 150, 0.12);
-  --code-bg: #0a100d;
-  --code-fg: #cfe0d5;
-  --code-border: #243029;
-  --warn: #e0b34d;
-  --warn-soft: rgba(224, 179, 77, 0.14);
-  --icon-sun: block;
-  --icon-moon: none;
-  color-scheme: dark;
-}
-
-/* ---- base ---- */
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.7;
-  word-break: keep-all;
-}
-main#app {
-  max-width: 62rem;
-  margin-inline: auto;
-  padding: 0 1.25rem 4rem;
-}
-h1, h2, h3 { line-height: 1.3; text-wrap: balance; }
-h2 { font-size: 1.45rem; letter-spacing: -0.01em; margin: 0 0 0.4rem; }
-h3 { font-size: 1.02rem; margin: 0 0 0.4rem; }
-p { margin: 0 0 1rem; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.mono { font-family: var(--font-mono); }
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--accent);
-  margin: 0 0 0.5rem;
-}
-section { margin-top: 4.5rem; }
-.section-intro { color: var(--muted); max-width: 44rem; margin-bottom: 1.4rem; }
-.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: 0.9em; }
-
-/* ---- top bar ---- */
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.1rem 0;
-  border-bottom: 1px solid var(--border);
-}
-.brand {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.brand .pad {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-#theme-toggle {
-  background: var(--raised);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  width: 2.3rem;
-  height: 2.3rem;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  color: var(--fg);
-  padding: 0;
-}
-#theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-#theme-toggle .icon-sun { display: var(--icon-sun); }
-#theme-toggle .icon-moon { display: var(--icon-moon); }
-
-/* ---- hero ---- */
-.hero { padding-top: 4.2rem; }
-.hero h1 {
-  font-family: var(--font-mono);
-  font-size: clamp(1.85rem, 5.5vw, 3rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  margin: 0.4rem 0 1rem;
-  overflow-wrap: anywhere;
-}
-.hero h1 .cursor {
-  color: var(--accent);
-  animation: blink 1.2s steps(2, start) infinite;
-}
-@keyframes blink { to { visibility: hidden; } }
-.tagline {
-  font-size: clamp(1.15rem, 2.6vw, 1.4rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  max-width: 36ch;
-  text-wrap: balance;
-  margin: 0 0 0.8rem;
-}
-.hero .sub { color: var(--muted); max-width: 44rem; margin: 0 0 1.6rem; }
-.chips {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0;
-  margin: 0 0 2.4rem;
-}
-.chips li {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  padding: 0.28rem 0.75rem;
-  background: var(--raised);
-}
-.trace { color: var(--accent); display: block; }
-
-/* ---- cards ---- */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1rem;
-}
-.card {
-  background: var(--raised);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.15rem 1.25rem;
-}
-.card .k {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  display: block;
-  margin-bottom: 0.5rem;
-}
-.card p { margin: 0; font-size: 0.92rem; color: var(--muted); }
-
-/* ---- diagram ---- */
-.diagram-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--raised);
-  padding: 1rem;
-}
-.diag { display: block; min-width: 780px; width: 100%; height: auto; }
-.diag .box { fill: var(--bg); stroke: var(--border-strong); stroke-width: 1.2; }
-.diag .box--engine { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
-.diag .box--out { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
-.diag .box--data { fill: var(--raised); stroke: var(--accent); stroke-dasharray: 4 3; }
-.diag .t { fill: var(--fg); font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
-.diag .s { fill: var(--muted); font-family: var(--font-sans); font-size: 11px; }
-.diag .m { font-family: var(--font-mono); }
-.diag .edge { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
-.diag .arr-head { fill: var(--muted); }
-.diagram-cap { font-size: 0.8rem; color: var(--muted); margin-top: 0.7rem; }
-
-/* ---- tables ---- */
-.tbl-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--raised);
-}
-table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
-.tbl-wrap table { min-width: 640px; }
-.tbl-wrap.wide table { min-width: 760px; }
-th {
-  text-align: left;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-td {
-  padding: 0.62rem 0.9rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-tr:last-child td { border-bottom: none; }
-td.c-mono { font-family: var(--font-mono); font-size: 0.84rem; white-space: nowrap; }
-td .args { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
-td.c-num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: 0.84rem; white-space: nowrap; }
-.tbl-note { font-size: 0.82rem; color: var(--muted); margin-top: 0.7rem; }
-
-/* ---- badges ---- */
-.tier {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  padding: 0.14rem 0.55rem;
-  border-radius: 999px;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-.tier--basic { color: var(--accent-strong); background: var(--accent-soft); }
-.tier--preferred { color: var(--fg); border-color: var(--border-strong); }
-.tier--extended { color: var(--warn); background: var(--warn-soft); }
-
-/* ---- callout ---- */
-.callout {
-  border: 1px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: 12px;
-  padding: 1rem 1.2rem;
-  margin: 1.4rem 0;
-}
-.callout .formula {
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 0.35rem;
-}
-.callout p { margin: 0; font-size: 0.9rem; color: var(--muted); }
-
-/* ---- rules list ---- */
-.rules { list-style: none; padding: 0; margin: 1.2rem 0 0; display: grid; gap: 0.9rem; }
-.rules li { padding-left: 1.4rem; position: relative; max-width: 46rem; }
-.rules li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-.rules strong { font-weight: 600; }
-.rules .why { color: var(--muted); font-size: 0.92rem; }
-
-/* ---- code ---- */
-pre {
-  background: var(--code-bg);
-  color: var(--code-fg);
-  border: 1px solid var(--code-border);
-  border-radius: 10px;
-  padding: 0.9rem 1.1rem;
-  overflow-x: auto;
-  font-family: var(--font-mono);
-  font-size: 0.84rem;
-  line-height: 1.65;
-  margin: 0;
-}
-pre code { font-family: inherit; }
-code {
-  font-family: var(--font-mono);
-  font-size: 0.86em;
-  background: var(--accent-soft);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
-}
-pre code { background: none; padding: 0; font-size: inherit; }
-figure.code { margin: 0.8rem 0 0; }
-figure.code figcaption {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.4rem;
-}
-
-/* ---- quickstart steps ---- */
-.steps {
-  list-style: none;
-  counter-reset: step;
-  padding: 0;
-  margin: 1.6rem 0 0;
-  display: grid;
-  gap: 1.8rem;
-}
-.steps > li { counter-increment: step; position: relative; padding-left: 3.1rem; }
-.steps > li::before {
-  content: counter(step);
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 50%;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: var(--raised);
-}
-.steps h3 { padding-top: 0.25rem; }
-.steps p { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.94rem; max-width: 44rem; }
-
-/* ---- FAQ ---- */
-.faq { border-top: 1px solid var(--border); margin-top: 1.4rem; }
-.faq details { border-bottom: 1px solid var(--border); }
-.faq summary {
-  cursor: pointer;
-  padding: 1rem 0.2rem;
-  font-weight: 600;
-  list-style: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-.faq summary::-webkit-details-marker { display: none; }
-.faq summary::after {
-  content: "+";
-  font-family: var(--font-mono);
-  font-size: 1.25rem;
-  color: var(--accent);
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-}
-.faq details[open] summary::after { transform: rotate(45deg); }
-.faq details p { margin: 0 0 1.1rem; padding: 0 0.2rem; color: var(--muted); max-width: 46rem; font-size: 0.94rem; }
-
-/* ---- footer ---- */
-footer {
-  margin-top: 5rem;
-  border-top: 1px solid var(--border);
-  padding-top: 1.7rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-footer p { margin: 0 0 0.5rem; max-width: 50rem; }
-footer .src { font-family: var(--font-mono); font-size: 0.8rem; }
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
-@media (max-width: 480px) {
-  section { margin-top: 3.5rem; }
-  .hero { padding-top: 3rem; }
-}
+:root[data-theme="dark"]{ --bg:#171614; --fg:#e8e6e1; --muted:#a09b91; --line:#33312c;
+  --accent:#3ecf9a; --accent-fg:#0e2c22; --code-bg:#232019; --card:#1e1c19; }
+:root[data-theme="light"]{ --bg:#faf9f7; --fg:#2b2a27; --muted:#6f6b63; --line:#e4e1da;
+  --accent:#0d7a5f; --accent-fg:#ffffff; --code-bg:#f0eee9; --card:#ffffff; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,"Noto Sans KR",sans-serif;}
+main{max-width:720px;margin:0 auto;padding:48px 20px 80px}
+h1{font-size:1.9rem;line-height:1.3;margin:0 0 8px;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:1.25rem;margin:56px 0 12px;padding-top:24px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h3{font-size:1rem;margin:24px 0 6px}
+p{margin:10px 0}
+.muted{color:var(--muted)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.toggle{border:1px solid var(--line);background:var(--card);color:var(--fg);
+  padding:6px 12px;border-radius:999px;cursor:pointer;font-size:.85rem}
+.links{margin:16px 0 0;display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-block;padding:8px 16px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);font-size:.92rem}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn.primary:hover{text-decoration:none;opacity:.92}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+  padding:14px 16px;overflow-x:auto;font-size:.86rem;line-height:1.6;margin:8px 0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+p code,li code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-size:.88em}
+ul{padding-left:22px;margin:10px 0}
+li{margin:5px 0}
+.demo{margin:20px 0}
+.demo img{max-width:100%;border:1px solid var(--line);border-radius:10px;display:block}
+.note{border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin:14px 0;color:var(--muted);font-size:.93rem}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:.85rem;color:var(--muted)}
+@media (max-width:480px){ h1{font-size:1.5rem} main{padding-top:32px} }
 </style>
 </head>
 <body>
-<main id="app">
-
-  <header class="top">
-    <span class="brand"><span class="pad" aria-hidden="true"></span>jlcpcb-skill-mcp</span>
-    <button id="theme-toggle" type="button" aria-label="라이트/다크 테마 전환">
-      <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="4"></circle>
-        <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"></path>
-      </svg>
-      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-      </svg>
-    </button>
-  </header>
-
-  <section class="hero">
-    <p class="eyebrow">MCP Server + Claude Skill</p>
-    <h1>jlcpcb-skill-mcp<span class="cursor" aria-hidden="true">_</span></h1>
-    <p class="tagline">KiCad 회로도에서 JLCPCB 조립 부품 선정까지, 대화 한 번으로 끝냅니다.</p>
-    <p class="sub">BOM 분석, 부품 추천, 조립 비용 견적을 Claude가 MCP 툴로 직접 수행합니다. 티어와 로딩피를 이해하는 추천 엔진이 재고와 가격까지 따져서 근거와 함께 제안합니다.</p>
-    <ul class="chips">
-      <li>7개 MCP 툴</li>
-      <li>티어 · 로딩피 자동 계산</li>
-      <li>재고 5–10× 휴리스틱</li>
-      <li>KiCad 6–9</li>
-    </ul>
-    <svg class="trace" width="260" height="16" viewBox="0 0 260 16" fill="none" aria-hidden="true">
-      <path d="M6 11H64L78 4h72l14 7h60" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-      <circle cx="6" cy="11" r="3.5" fill="currentColor"></circle>
-      <circle cx="228" cy="11" r="3.5" fill="currentColor"></circle>
-    </svg>
-  </section>
-
-  <section id="problem" aria-labelledby="problem-h">
-    <p class="eyebrow">Problem</p>
-    <h2 id="problem-h">왜 필요한가</h2>
-    <p class="section-intro">JLCPCB 조립 주문에서 부품 선정은 단순한 검색 문제가 아닙니다. 수수료 구조, 재고 변동, 방대한 카탈로그가 겹치면 시제품 한 번에도 비용과 시간이 새어 나갑니다.</p>
-    <div class="cards">
-      <div class="card">
-        <span class="k">FEE / 로딩피</span>
-        <h3>로딩피가 조용히 불어납니다</h3>
-        <p>Extended 부품에는 종류당 $3의 로딩피가 붙습니다. 부품 20종이면 보드 수량과 무관하게 $60 — 같은 값이라도 Basic 부품으로 바꾸면 그대로 사라지는 비용입니다.</p>
-      </div>
-      <div class="card">
-        <span class="k">STOCK / 재고</span>
-        <h3>재고는 발주 직전에 사라집니다</h3>
-        <p>재고가 필요 수량에 겨우 닿는 부품은 며칠 사이 품절되곤 합니다. 여유 배수 없이 고르면 재발주 지연과 BOM 재작업 위험을 떠안게 됩니다.</p>
-      </div>
-      <div class="card">
-        <span class="k">CHOICE / 선택 피로</span>
-        <h3>60만 개 중 하나를 골라야 합니다</h3>
-        <p>LCSC 카탈로그에는 60만 종이 넘는 부품이 있고, 10kΩ 0603 저항만 해도 수백 종입니다. 티어·재고·가격을 매번 손으로 비교하는 일은 사람이 오래 할 작업이 아닙니다.</p>
-      </div>
+<main>
+  <div class="top">
+    <div>
+      <h1>JLCPCB Parts MCP + Skill</h1>
+      <p class="muted">KiCad 회로에 맞는 JLCPCB/LCSC 부품을 조립 비용까지 고려해 추천합니다.</p>
     </div>
-  </section>
+    <button class="toggle" id="themeToggle" aria-label="테마 전환">◐ 테마</button>
+  </div>
 
-  <section id="architecture" aria-labelledby="arch-h">
-    <p class="eyebrow">Architecture</p>
-    <h2 id="arch-h">동작 구조</h2>
-    <p class="section-intro">회로도 파일이 추천 BOM이 되기까지의 흐름입니다. 모든 단계는 MCP 툴로 노출되어 Claude가 필요한 부분만 골라 호출할 수도 있습니다.</p>
-    <figure class="diagram-wrap" style="margin:0">
-      <svg class="diag" viewBox="0 0 960 260" role="img" aria-label="아키텍처 다이어그램: KiCad 파일이 analyze_kicad 툴을 거쳐 BOM 라인이 되고, jlcsearch 데이터를 사용하는 추천 엔진이 추천 BOM과 비용 견적을 산출합니다.">
-        <defs>
-          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0 0L10 5L0 10z" class="arr-head"></path>
-          </marker>
-        </defs>
-        <path class="edge" d="M158 102H182"></path>
-        <path class="edge" d="M360 102H384"></path>
-        <path class="edge" d="M512 102H536"></path>
-        <path class="edge" d="M724 102H748"></path>
-        <path class="edge" d="M634 186V142"></path>
-        <g>
-          <rect class="box" x="8" y="70" width="150" height="64" rx="10"></rect>
-          <text class="t" x="83" y="98" text-anchor="middle">KiCad 파일</text>
-          <text class="s m" x="83" y="118" text-anchor="middle">.kicad_sch · BOM .csv</text>
-        </g>
-        <g>
-          <rect class="box" x="190" y="70" width="170" height="64" rx="10"></rect>
-          <text class="t m" x="275" y="98" text-anchor="middle">analyze_kicad</text>
-          <text class="s" x="275" y="118" text-anchor="middle">파싱 · 그룹핑 (MCP 툴)</text>
-        </g>
-        <g>
-          <rect class="box" x="392" y="70" width="120" height="64" rx="10"></rect>
-          <text class="t" x="452" y="98" text-anchor="middle">BOM 라인</text>
-          <text class="s" x="452" y="118" text-anchor="middle">값 · 패키지 · 수량</text>
-        </g>
-        <g>
-          <rect class="box box--engine" x="544" y="70" width="180" height="64" rx="10"></rect>
-          <text class="t" x="634" y="98" text-anchor="middle">추천 엔진</text>
-          <text class="s" x="634" y="118" text-anchor="middle">랭킹 · 티어 · 재고 · 가격</text>
-        </g>
-        <g>
-          <rect class="box box--out" x="756" y="70" width="196" height="64" rx="10"></rect>
-          <text class="t" x="854" y="98" text-anchor="middle">추천 BOM + 비용</text>
-          <text class="s" x="854" y="118" text-anchor="middle">후보 · 경고 · 견적</text>
-        </g>
-        <g>
-          <rect class="box box--data" x="544" y="188" width="180" height="58" rx="10"></rect>
-          <text class="t m" x="634" y="212" text-anchor="middle">jlcsearch 데이터</text>
-          <text class="s" x="634" y="232" text-anchor="middle">LCSC 60만+ 부품 스냅샷</text>
-        </g>
-      </svg>
-      <figcaption class="diagram-cap">데이터는 커뮤니티 API인 jlcsearch.tscircuit.com에서 가져오며, 5분 캐시와 재시도로 API 부하를 줄입니다.</figcaption>
-    </figure>
-  </section>
+  <p>Claude Code에서 <strong>"이 회로에 맞는 부품 골라줘"</strong> 한 마디면 회로도(<code>.kicad_sch</code>)를 분석해
+  LCSC 부품번호를 매칭하고, 수수료 없는 basic 부품을 우선으로 재고·가격을 검토한 뒤
+  추천 BOM과 예상 비용을 정리해 줍니다. 확신이 부족한 매칭은 자동 승인하지 않고 확인 요청으로 표시합니다.</p>
 
-  <section id="tools" aria-labelledby="tools-h">
-    <p class="eyebrow">Tools</p>
-    <h2 id="tools-h">MCP 툴 레퍼런스</h2>
-    <p class="section-intro">Claude가 호출하는 7개의 툴입니다. 모든 툴은 사람이 읽을 요약 한 줄과 기계가 읽을 JSON 블록을 함께 반환합니다.</p>
-    <div class="tbl-wrap wide">
-      <table>
-        <thead>
-          <tr><th scope="col">툴</th><th scope="col">주요 입력</th><th scope="col">설명</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="c-mono">search_parts</td>
-            <td><span class="args">query, package?, tier?, min_stock?, limit?</span></td>
-            <td>자유 텍스트로 부품을 검색합니다. 티어·최소 재고 필터를 지원합니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">search_passives</td>
-            <td><span class="args">kind, value, package?, limit?</span></td>
-            <td>"10k", "100nF" 같은 값 표기를 해석해 저항·커패시터를 파라메트릭 검색합니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">get_part</td>
-            <td><span class="args">lcsc</span></td>
-            <td>LCSC 번호로 단일 부품의 상세 정보(가격 구간, 속성, 재고, 티어)를 조회합니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">find_alternatives</td>
-            <td><span class="args">lcsc, limit?</span></td>
-            <td>지정한 부품과 같은 사양·패키지의 대체 부품을 찾아 순위를 매깁니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">analyze_kicad</td>
-            <td><span class="args">path</span></td>
-            <td>.kicad_sch 회로도 또는 BOM CSV를 파싱해 값·패키지·수량 기준의 BOM 라인으로 정리합니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">suggest_bom_parts</td>
-            <td><span class="args">path | bom_lines, board_qty?, stock_multiple?, max_candidates?</span></td>
-            <td>BOM 전체에 대해 라인별 후보 추천과 비용 견적을 한 번에 수행합니다.</td>
-          </tr>
-          <tr>
-            <td class="c-mono">estimate_assembly_cost</td>
-            <td><span class="args">parts[{lcsc, qty_per_board}], board_qty</span></td>
-            <td>확정된 부품 목록의 부품비와 로딩피를 합산해 총액·장당 비용을 계산합니다.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <div class="links">
+    <a class="btn primary" href="https://github.com/hulryung/jlcpcb-skill-mcp">GitHub 저장소</a>
+    <a class="btn" href="#install">설치하기</a>
+  </div>
 
-  <section id="heuristics" aria-labelledby="heur-h">
-    <p class="eyebrow">Heuristics</p>
-    <h2 id="heur-h">선정 휴리스틱</h2>
-    <p class="section-intro">추천 엔진과 jlcpcb-parts 스킬에 내장된 선정 기준입니다. JLCPCB의 부품 티어 구조가 출발점입니다.</p>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr><th scope="col">티어</th><th scope="col">로딩피</th><th scope="col">설명</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="tier tier--basic">Basic</span></td>
-            <td>없음</td>
-            <td>약 700종의 범용 부품. 픽앤플레이스 라인에 상시 장착되어 있어 추가 비용이 전혀 없습니다.</td>
-          </tr>
-          <tr>
-            <td><span class="tier tier--preferred">Preferred</span></td>
-            <td>면제</td>
-            <td>Preferred Extended 부품. Economic PCBA 기준으로 로딩피가 면제됩니다.</td>
-          </tr>
-          <tr>
-            <td><span class="tier tier--extended">Extended</span></td>
-            <td>종류당 $3</td>
-            <td>주문마다 부품 종류 단위로 부과됩니다. 수량이 아니라 종류 기준이라, 종류 수를 줄이는 것이 곧 절감입니다.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="callout">
-      <span class="formula">재고 ≥ 보드 수 × 보드당 수량 × 5–10</span>
-      <p>재고 스냅샷은 실제와 시차가 있으므로 필요 수량의 5–10배 이상 재고를 가진 부품만 신뢰합니다. 수동소자는 재고 1만 개 이상을 선호합니다.</p>
-    </div>
-    <ul class="rules">
-      <li><strong>패키지 통합</strong> — 같은 값의 저항·커패시터가 0402/0603/0805에 흩어져 있으면 한 패키지로 통합합니다. <span class="why">BOM 라인 수와 로딩피가 함께 줄어듭니다.</span></li>
-      <li><strong>가격 구간 인지</strong> — 단가는 항상 실제 필요 수량 기준의 가격 구간으로 비교합니다. <span class="why">1개 단가가 싼 부품이 100개 단가에서는 역전되기도 합니다.</span></li>
-      <li><strong>대체 부품 확보</strong> — 핵심 라인에는 <code>find_alternatives</code>로 백업 부품을 1개 이상 확보합니다. <span class="why">발주 시점 품절에 대비하는 가장 싼 보험입니다.</span></li>
-      <li><strong>needs_review 존중</strong> — 텍스트 검색으로만 매칭된 IC와 커넥터는 자동 확정하지 않고 검토 대상으로 표시합니다. <span class="why">핀맵과 풋프린트는 사람이 최종 확인해야 합니다.</span></li>
-    </ul>
-  </section>
+  <h2 id="usage-demo">이렇게 동작합니다</h2>
+  <p>실제 Claude Code 세션 — 자연어 요청 한 줄로 부품 선정부터 비용 산출까지:</p>
+  <div class="demo">
+    <img src="demo-claude.gif" alt="Claude Code 세션에서 자연어 명령으로 JLCPCB 부품을 추천받는 데모 영상" loading="lazy">
+  </div>
 
-  <section id="quickstart" aria-labelledby="qs-h">
-    <p class="eyebrow">Quickstart</p>
-    <h2 id="qs-h">설치 — 클라이언트별 가이드</h2>
-    <p class="section-intro">Claude Code는 플러그인 두 줄이면 끝나고, Codex 등 다른 MCP 클라이언트는 번들 파일 하나만 내려받으면 됩니다 (클론·빌드 불필요).</p>
-    <ol class="steps">
-      <li>
-        <h3>Claude Code — 플러그인 (권장)</h3>
-        <p>스킬과 MCP 서버가 함께 설치됩니다. Claude Code 안에서:</p>
-        <figure class="code">
-          <figcaption>Claude Code</figcaption>
-          <pre><code>/plugin marketplace add hulryung/jlcpcb-skill-mcp
+  <h2 id="install">설치하는 방법</h2>
+
+  <h3>Claude Code (권장)</h3>
+  <p>Claude Code 안에서 두 줄이면 스킬과 MCP 서버가 함께 설치됩니다. 클론이나 빌드는 필요 없습니다.</p>
+  <pre><code>/plugin marketplace add hulryung/jlcpcb-skill-mcp
 /plugin install jlcpcb-parts@jlcpcb-tools</code></pre>
-        </figure>
-        <p>설치 후 KiCad 프로젝트 디렉토리에서 "이 회로에 맞는 부품 골라줘"라고 하면 <code>jlcpcb-parts</code> 스킬이 분석 → 추천 → 견적 워크플로를 자동 실행합니다.</p>
-      </li>
-      <li>
-        <h3>Codex CLI</h3>
-        <p>의존성이 포함된 서버 번들 파일 하나를 받아 등록합니다 (Node 18+만 있으면 됩니다):</p>
-        <figure class="code">
-          <figcaption>terminal</figcaption>
-          <pre><code>curl -fsSL -o ~/.jlcpcb-parts.mjs \
+
+  <h3>Codex CLI</h3>
+  <p>서버 번들 파일 하나를 내려받아 등록합니다 (Node 18 이상 필요).</p>
+  <pre><code>curl -fsSL -o ~/.jlcpcb-parts.mjs \
   https://raw.githubusercontent.com/hulryung/jlcpcb-skill-mcp/main/dist-plugin/index.mjs
 codex mcp add jlcpcb-parts -- node ~/.jlcpcb-parts.mjs</code></pre>
-        </figure>
-        <p>또는 <code>~/.codex/config.toml</code>에 직접 추가할 수 있습니다:</p>
-        <figure class="code">
-          <figcaption>~/.codex/config.toml</figcaption>
-          <pre><code>[mcp_servers.jlcpcb-parts]
-command = "node"
-args = ["/Users/you/.jlcpcb-parts.mjs"]</code></pre>
-        </figure>
-        <p>등록 확인은 Codex 입력창에서 <code>/mcp</code>. Codex에는 스킬 개념이 없으므로, 부품 선정 규칙을 적용하려면 프로젝트 <code>AGENTS.md</code>에 저장소의 <code>.claude/skills/jlcpcb-parts/SKILL.md</code> 내용을 참고로 옮겨 두는 것을 권합니다.</p>
-      </li>
-      <li>
-        <h3>기타 MCP 클라이언트 · 로컬 빌드</h3>
-        <p>stdio MCP를 지원하는 클라이언트(Cursor, Claude Desktop, Gemini CLI 등)는 위 번들 파일을 같은 방식으로 등록하면 됩니다. 소스에서 직접 빌드하려면 <code>npm install && npm run build</code> 후 <code>.mcp.json</code>에:</p>
-        <figure class="code">
-          <figcaption>.mcp.json</figcaption>
-          <pre><code>{
-  "mcpServers": {
-    "jlcpcb-parts": {
-      "command": "node",
-      "args": ["./dist/index.js"]
-    }
-  }
-}</code></pre>
-        </figure>
-      </li>
-    </ol>
-  </section>
+  <p class="muted">등록 확인은 Codex 입력창에서 <code>/mcp</code>를 입력하면 됩니다.</p>
 
-  <section id="example" aria-labelledby="ex-h">
-    <p class="eyebrow">Example</p>
-    <h2 id="ex-h">추천 BOM 예시 — 555 타이머 보드</h2>
-    <p class="section-intro"><span class="tier tier--extended">예시 데이터</span>&nbsp; 아래 표는 형식을 보여 주기 위한 예시이며, 실제 가격·재고·티어는 주문 시점에 달라질 수 있습니다.</p>
-    <div class="tbl-wrap wide">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">참조</th>
-            <th scope="col">부품</th>
-            <th scope="col">LCSC</th>
-            <th scope="col">티어</th>
-            <th scope="col">단가 (100개)</th>
-            <th scope="col">재고</th>
-            <th scope="col">비고</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="c-mono">R1–R3</td>
-            <td>10kΩ ±1% 0603</td>
-            <td class="c-mono">C25804</td>
-            <td><span class="tier tier--basic">Basic</span></td>
-            <td class="c-num">$0.0008</td>
-            <td class="c-num">3,000만+</td>
-            <td>로딩피 없음</td>
-          </tr>
-          <tr>
-            <td class="c-mono">C1, C2</td>
-            <td>100nF 50V X7R 0603</td>
-            <td class="c-mono">C14663</td>
-            <td><span class="tier tier--basic">Basic</span></td>
-            <td class="c-num">$0.0009</td>
-            <td class="c-num">1,000만+</td>
-            <td>로딩피 없음</td>
-          </tr>
-          <tr>
-            <td class="c-mono">U1</td>
-            <td>NE555DR 타이머 SOIC-8</td>
-            <td class="c-mono">C7593</td>
-            <td><span class="tier tier--preferred">Preferred</span></td>
-            <td class="c-num">$0.087</td>
-            <td class="c-num">18만+</td>
-            <td>로딩피 면제</td>
-          </tr>
-          <tr>
-            <td class="c-mono">J1</td>
-            <td>USB-C 16P (TYPE-C-31-M-12)</td>
-            <td class="c-mono">C165948</td>
-            <td><span class="tier tier--extended">Extended</span></td>
-            <td class="c-num">$0.059</td>
-            <td class="c-num">70만+</td>
-            <td>+$3 로딩피 1회</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="tbl-note">예시 견적 — 보드 10장 기준: 부품비 약 <span class="num">$1.50</span> + 로딩피 <span class="num">$3.00</span> = 총 약 <span class="num">$4.50</span> (장당 약 <span class="num">$0.45</span>). Extended 커넥터 1종의 로딩피가 부품비의 2배라는 점이 이 구조의 핵심입니다.</p>
-  </section>
+  <h3>기타 MCP 클라이언트</h3>
+  <p>Cursor, Claude Desktop, Gemini CLI 등 stdio MCP를 지원하는 클라이언트라면 위에서 받은
+  번들 파일을 같은 방식으로 등록하면 됩니다 — <code>command: node</code>, <code>args: [번들 경로]</code>.</p>
 
-  <section id="faq" aria-labelledby="faq-h">
-    <p class="eyebrow">FAQ</p>
-    <h2 id="faq-h">자주 묻는 질문</h2>
-    <div class="faq">
-      <details>
-        <summary>비공식 API를 쓰는데 위험하지 않습니까?</summary>
-        <p>jlcsearch.tscircuit.com은 커뮤니티가 운영하는 비공식 API로, 예고 없이 변경되거나 중단될 수 있습니다. 클라이언트에 타임아웃·재시도·5분 캐시를 두었고, 파라메트릭 검색이 실패하면 텍스트 검색으로 자동 폴백합니다. 최종 발주 판단은 반드시 JLCPCB 공식 정보로 하시기 바랍니다.</p>
-      </details>
-      <details>
-        <summary>재고 수치는 얼마나 정확합니까?</summary>
-        <p>스냅샷 기반 데이터라 실제 재고와 시차가 있습니다. 그래서 엔진이 5–10배 여유 배수를 기본으로 적용하며, 그럼에도 주문 직전에는 JLCPCB 사이트에서 재고를 다시 확인하는 것을 전제로 설계되어 있습니다.</p>
-      </details>
-      <details>
-        <summary>LCSC에서 직접 단품을 구매하는 것과는 어떤 관계입니까?</summary>
-        <p>이 도구의 티어와 로딩피 계산은 JLCPCB PCBA(조립) 주문 기준입니다. LCSC 단품 구매에는 로딩피 개념이 없고 가격·최소 수량 정책도 다르므로, 단품 구매 견적 용도로는 사용하지 마십시오.</p>
-      </details>
-      <details>
-        <summary>어떤 KiCad 버전을 지원합니까?</summary>
-        <p>KiCad 6–9의 .kicad_sch s-expression 포맷을 파싱하며, KiCad에서 내보낸 BOM CSV도 읽을 수 있습니다. 전원 심볼과 DNP·in_bom 제외 부품은 자동으로 걸러집니다.</p>
-      </details>
-    </div>
-  </section>
+  <h2 id="how">사용하는 방법</h2>
+  <p>KiCad 프로젝트 디렉토리에서 Claude Code를 열고 평소처럼 말하면 됩니다.</p>
+  <ul>
+    <li>"이 회로에 맞는 부품 골라줘. <strong>50장 생산 기준으로.</strong>" — 전체 BOM 추천 + 비용</li>
+    <li>"C25804 대체품 찾아줘" — 동일 스펙 대체 부품 탐색</li>
+    <li>"이 부품 목록으로 100장 조립 비용 계산해줘" — 부품비 + 로딩피 산출</li>
+    <li>"추천 부품을 회로도에 지정해줘" — 회로도에 LCSC 필드 직접 기록</li>
+  </ul>
+  <p>결과는 라인별 추천 표(LCSC 번호·티어·재고·단가)와 비용 요약, 리스크 목록으로 정리됩니다.</p>
+  <div class="note">
+    <p><strong>알아두면 좋은 것</strong></p>
+    <p>· 회로도를 수정한 뒤에는 KiCad에서 <strong>F8</strong>(Update PCB from Schematic)로 PCB에 반영하세요.</p>
+    <p>· 재고와 가격은 수시로 바뀝니다 — 실제 주문 직전에 "재고 다시 확인해줘"로 재검증하세요.</p>
+    <p>· "확인 필요(needs_review)"로 표시된 부품은 데이터시트에서 풋프린트를 직접 확인한 뒤 쓰세요.</p>
+  </div>
+
+  <h2 id="feedback">피드백</h2>
+  <p>버그 제보, 기능 제안, 사용 후기 모두 환영합니다.</p>
+  <ul>
+    <li><a href="https://github.com/hulryung/jlcpcb-skill-mcp/issues">GitHub Issues</a> — 버그·기능 요청</li>
+    <li><a href="https://github.com/hulryung/jlcpcb-skill-mcp">저장소에 ⭐</a> — 프로젝트가 도움이 됐다면</li>
+  </ul>
 
   <footer>
-    <p class="src">데이터 출처 — jlcsearch.tscircuit.com (tscircuit 프로젝트) · yaqwsx의 jlcparts 오픈 데이터셋 기반. 두 프로젝트에 감사드립니다.</p>
-    <p>jlcpcb-skill-mcp는 JLCPCB·LCSC와 무관한 비공식 오픈소스 도구입니다. 가격·재고·수수료 정책은 주문 시점의 JLCPCB 공식 안내를 따릅니다.</p>
+    <p>부품 데이터: <a href="https://github.com/tscircuit/jlcsearch">tscircuit/jlcsearch</a> ·
+    <a href="https://github.com/yaqwsx/jlcparts">yaqwsx/jlcparts</a> 기반의 비공식 미러입니다.
+    본 프로젝트는 JLCPCB/LCSC와 무관한 비공식 도구입니다. MIT License.</p>
   </footer>
-
 </main>
 <script>
-(function () {
-  // 테마 오버라이드는 메모리 변수에만 저장합니다 (브라우저 저장소 미사용).
+(function(){
+  var btn = document.getElementById('themeToggle');
   var override = null;
-  var mq = window.matchMedia("(prefers-color-scheme: dark)");
-  var btn = document.getElementById("theme-toggle");
-  if (!btn) return;
-  function effective() {
-    return override || (mq.matches ? "dark" : "light");
-  }
-  btn.addEventListener("click", function () {
-    override = effective() === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", override);
+  btn.addEventListener('click', function(){
+    var dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    var cur = override || (dark ? 'dark' : 'light');
+    override = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', override);
   });
 })();
 </script>
