@@ -9,6 +9,7 @@ import { registerSearchPassives } from "./tools/search-passives.js";
 import { registerGetPart } from "./tools/get-part.js";
 import { registerFindAlternatives } from "./tools/find-alternatives.js";
 import { registerAnalyzeKicad } from "./tools/analyze-kicad.js";
+import { registerImportPart } from "./tools/import-part.js";
 import { registerSuggestBomParts } from "./tools/suggest-bom-parts.js";
 import { registerEstimateAssemblyCost } from "./tools/estimate-assembly-cost.js";
 
@@ -29,7 +30,9 @@ LCSC numbers look like "C25804". Stock should comfortably exceed needed quantity
 
 Typical workflow: analyze_kicad (parse schematic/BOM) → suggest_bom_parts (ranked
 candidates + cost) → review needs_review / no_match lines with search_parts,
-search_passives, find_alternatives → estimate_assembly_cost for the final picks.`;
+search_passives, find_alternatives → estimate_assembly_cost for the final picks.
+To make a chosen part usable in a KiCad project, import_part_to_kicad fetches its
+symbol/footprint/3D model and registers them in the project's libraries.`;
 
 /**
  * Default data source, in priority order:
@@ -60,6 +63,7 @@ export function buildServer(deps: BuildServerDeps = {}): McpServer {
   registerGetPart(server, toolDeps);
   registerFindAlternatives(server, toolDeps);
   registerAnalyzeKicad(server);
+  registerImportPart(server);
   registerSuggestBomParts(server, toolDeps);
   registerEstimateAssemblyCost(server, toolDeps);
 

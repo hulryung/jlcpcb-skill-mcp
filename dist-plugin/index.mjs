@@ -3229,8 +3229,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path3) {
-      let input = path3;
+    function removeDotSegments(path4) {
+      let input = path4;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3482,8 +3482,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path3, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path3 && path3 !== "/" ? path3 : void 0;
+        const [path4, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path4 && path4 !== "/" ? path4 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -6890,7 +6890,7 @@ var require_dist = __commonJS({
 });
 
 // src/index.ts
-import { existsSync as existsSync2 } from "node:fs";
+import { existsSync as existsSync3 } from "node:fs";
 
 // node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 import process2 from "node:process";
@@ -7090,10 +7090,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path3) {
-  if (!path3)
+function getElementAtPath(obj, path4) {
+  if (!path4)
     return obj;
-  return path3.reduce((acc, key) => acc?.[key], obj);
+  return path4.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -7413,11 +7413,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path3, issues) {
+function prefixIssues(path4, issues) {
   return issues.map((iss) => {
     var _a;
     (_a = iss).path ?? (_a.path = []);
-    iss.path.unshift(path3);
+    iss.path.unshift(path4);
     return iss;
   });
 }
@@ -13491,8 +13491,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path3, errorMaps, issueData } = params;
-  const fullPath = [...path3, ...issueData.path || []];
+  const { data, path: path4, errorMaps, issueData } = params;
+  const fullPath = [...path4, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -13608,11 +13608,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path3, key) {
+  constructor(parent, value, path4, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path3;
+    this._path = path4;
     this._key = key;
   }
   get path() {
@@ -21416,11 +21416,11 @@ var JlcClient = class {
   /** Category-endpoint lookup returning the part WITH parsed attributes (Resistance/Tolerance/Capacitance...), or null. */
   async getPassiveDetail(lcsc, kind) {
     const id = toLcscId(lcsc);
-    const path3 = kind === "resistor" ? "/resistors/list.json" : "/capacitors/list.json";
+    const path4 = kind === "resistor" ? "/resistors/list.json" : "/capacitors/list.json";
     const key = kind === "resistor" ? "resistors" : "capacitors";
     const normalize = kind === "resistor" ? normalizeResistor : normalizeCapacitor;
-    const data = await this.getJson(path3, { search: `C${id}` });
-    return findExact(rowsOf(data, key, path3), id, normalize);
+    const data = await this.getJson(path4, { search: `C${id}` });
+    return findExact(rowsOf(data, key, path4), id, normalize);
   }
   async listCategories() {
     const data = await this.getJson("/categories/list.json", {});
@@ -21438,16 +21438,16 @@ var JlcClient = class {
    * the case-insensitive client-side packageMatches filter. Both request
    * variants are cached as usual by getJson.
    */
-  async getRowsWithPackageFallback(path3, params, key) {
-    const data = await this.getJson(path3, params);
-    const rows = rowsOf(data, key, path3);
+  async getRowsWithPackageFallback(path4, params, key) {
+    const data = await this.getJson(path4, params);
+    const rows = rowsOf(data, key, path4);
     if (rows.length > 0 || params.package === void 0) return rows;
     const { package: _omitted, ...withoutPackage } = params;
-    const retryData = await this.getJson(path3, withoutPackage);
-    return rowsOf(retryData, key, path3);
+    const retryData = await this.getJson(path4, withoutPackage);
+    return rowsOf(retryData, key, path4);
   }
-  async getJson(path3, params) {
-    const url = new URL(this.baseUrl + path3);
+  async getJson(path4, params) {
+    const url = new URL(this.baseUrl + path4);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
     const key = url.toString();
     const cached2 = this.cache.get(key);
@@ -22007,12 +22007,12 @@ var JlcRemoteClient = class {
     this.timeoutMs = opts.timeoutMs ?? 1e4;
     this.fetchFn = opts.fetchFn ?? fetch;
   }
-  async get(path3) {
+  async get(path4) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
     try {
-      const res = await this.fetchFn(`${this.base}${path3}`, { signal: ctrl.signal });
-      if (!res.ok) throw new Error(`jlcpcb-api ${res.status} for ${path3}`);
+      const res = await this.fetchFn(`${this.base}${path4}`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error(`jlcpcb-api ${res.status} for ${path4}`);
       return await res.json();
     } finally {
       clearTimeout(timer);
@@ -23769,6 +23769,97 @@ function registerAnalyzeKicad(server) {
   );
 }
 
+// src/tools/import-part.ts
+import { execFileSync } from "node:child_process";
+import { existsSync as existsSync2 } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path3 from "node:path";
+var MARKER = "__RESULT__";
+function driverPath() {
+  const override = process.env.JLCPCB_KICAD_IMPORT_SCRIPT;
+  if (override && existsSync2(override)) return override;
+  const here = path3.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path3.join(here, "..", "scripts", "kicad_import.py"),
+    // bundled: dist-plugin/../scripts
+    path3.join(here, "..", "..", "scripts", "kicad_import.py"),
+    // built: dist/tools/../../scripts
+    path3.join(here, "..", "..", "..", "scripts", "kicad_import.py")
+  ];
+  return candidates.find((c) => existsSync2(c)) ?? null;
+}
+function registerImportPart(server) {
+  server.registerTool(
+    "import_part_to_kicad",
+    {
+      title: "Import a part into a KiCad library",
+      description: "Fetch an LCSC part's KiCad symbol, footprint, and 3D model (STEP + WRL) and add them to a KiCad project's libraries, registering them in the project's sym/fp-lib-table so the part is immediately usable. Reuses the kicad-lcsc-manager engine (github.com/hulryung/kicad-lcsc-manager) \u2014 install it or set KICAD_LCSC_MANAGER if missing. Requires python3. Run after picking parts with suggest_bom_parts / find_alternatives to make them usable in the schematic.",
+      inputSchema: {
+        lcsc: external_exports.union([external_exports.string(), external_exports.array(external_exports.string()).min(1)]).describe('LCSC part number(s), e.g. "C25804" or ["C25804","C7593"]'),
+        project_dir: external_exports.string().describe(
+          "KiCad project directory (or a .kicad_pro path). Library files are written under it (libs/lcsc/...) and registered in its lib tables."
+        ),
+        include: external_exports.array(external_exports.enum(["symbol", "footprint", "model_3d"])).optional().describe("Which assets to import (default: all three)"),
+        overwrite: external_exports.boolean().optional().describe("Overwrite an existing entry for this LCSC id (default false)"),
+        manager_path: external_exports.string().optional().describe("Path to a kicad-lcsc-manager checkout, if not auto-detected")
+      }
+    },
+    async (input) => {
+      try {
+        const ids = (Array.isArray(input.lcsc) ? input.lcsc : [input.lcsc]).map((s) => s.trim()).filter(Boolean);
+        if (ids.length === 0) return err("No LCSC part numbers provided.");
+        const script = driverPath();
+        if (!script) {
+          return err(
+            "Import driver (scripts/kicad_import.py) not found in the installed package. Set JLCPCB_KICAD_IMPORT_SCRIPT to its path."
+          );
+        }
+        try {
+          execFileSync("python3", ["--version"], { stdio: "ignore" });
+        } catch {
+          return err("python3 is required for import_part_to_kicad but was not found on PATH.");
+        }
+        const args = [script, "--project", input.project_dir, "--lcsc", ...ids];
+        const include = input.include ?? [];
+        if (include.includes("symbol")) args.push("--symbol");
+        if (include.includes("footprint")) args.push("--footprint");
+        if (include.includes("model_3d")) args.push("--3d");
+        if (input.overwrite) args.push("--overwrite");
+        if (input.manager_path) args.push("--manager-path", input.manager_path);
+        let stdout = "";
+        try {
+          stdout = execFileSync("python3", args, { encoding: "utf8", timeout: 18e4 });
+        } catch (e) {
+          const eo = e;
+          stdout = eo.stdout ?? "";
+          if (!stdout.includes(MARKER)) {
+            return err(`import driver failed: ${(eo.stderr ?? errorMessage(e)).slice(0, 800)}`);
+          }
+        }
+        const line = stdout.split("\n").reverse().find((l) => l.startsWith(MARKER));
+        if (!line) return err(`import driver produced no result. Output: ${stdout.slice(0, 500)}`);
+        const data = JSON.parse(line.slice(MARKER.length));
+        if (!data.ok && data.error) return err(data.error);
+        const results = data.results ?? [];
+        const okCount = results.filter((r) => r.success).length;
+        const failed = results.filter((r) => !r.success);
+        const assets = (input.include && input.include.length > 0 ? input.include : ["symbol", "footprint", "model_3d"]).map((a) => a === "model_3d" ? "3D" : a).join(" + ");
+        const summary = `Imported ${okCount}/${results.length} part(s) into ${input.project_dir} (${assets}), registered in the project libraries` + (failed.length ? ` \u2014 ${failed.length} failed: ${failed.map((f) => f.lcsc).join(", ")}` : "");
+        return ok(summary, {
+          project: data.project,
+          library: data.library,
+          results,
+          nextSteps: [
+            "Reopen the project in KiCad (or Preferences \u2192 Manage Libraries) \u2014 the imported symbols/footprints are ready to place."
+          ]
+        });
+      } catch (e) {
+        return err(`import_part_to_kicad failed: ${errorMessage(e)}`);
+      }
+    }
+  );
+}
+
 // src/tools/suggest-bom-parts.ts
 var bomLineRow = external_exports.object({
   value: external_exports.string().describe('Component value, e.g. "10k", "100nF", "AMS1117-3.3", "ESP32-C3"'),
@@ -23986,7 +24077,9 @@ LCSC numbers look like "C25804". Stock should comfortably exceed needed quantity
 
 Typical workflow: analyze_kicad (parse schematic/BOM) \u2192 suggest_bom_parts (ranked
 candidates + cost) \u2192 review needs_review / no_match lines with search_parts,
-search_passives, find_alternatives \u2192 estimate_assembly_cost for the final picks.`;
+search_passives, find_alternatives \u2192 estimate_assembly_cost for the final picks.
+To make a chosen part usable in a KiCad project, import_part_to_kicad fetches its
+symbol/footprint/3D model and registers them in the project's libraries.`;
 function defaultClient() {
   const api = new JlcClient();
   const db = openDbIfAvailable(process.env.JLCPCB_PARTS_DB);
@@ -24006,6 +24099,7 @@ function buildServer(deps = {}) {
   registerGetPart(server, toolDeps);
   registerFindAlternatives(server, toolDeps);
   registerAnalyzeKicad(server);
+  registerImportPart(server);
   registerSuggestBomParts(server, toolDeps);
   registerEstimateAssemblyCost(server, toolDeps);
   return server;
@@ -24017,7 +24111,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   const dbPath = process.env.JLCPCB_PARTS_DB || defaultDbPath();
-  const mode = existsSync2(dbPath) ? `local DB (${dbPath}) + live API verify` : process.env.JLCPCB_API_URL ? `hosted API (${process.env.JLCPCB_API_URL})` : "live jlcsearch API";
+  const mode = existsSync3(dbPath) ? `local DB (${dbPath}) + live API verify` : process.env.JLCPCB_API_URL ? `hosted API (${process.env.JLCPCB_API_URL})` : "live jlcsearch API";
   console.error(`jlcpcb-parts MCP server running on stdio \u2014 parts data: ${mode}`);
 }
 main().catch((e) => {

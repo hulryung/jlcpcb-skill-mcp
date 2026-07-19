@@ -128,6 +128,17 @@ Component-type guidance:
    cost breakdown (component total, loading fees, per-board).
 6. **Present** the suggested BOM in the format below, with per-line reasoning,
    the cost summary, and the risk list.
+7. **Import into KiCad (optional, on request).** When the user wants a chosen
+   part usable in their design, run **`import_part_to_kicad`** with the
+   `lcsc` (one or many) and `project_dir` (their KiCad project). It fetches the
+   symbol, footprint, and 3D model (STEP + WRL), writes them into the project's
+   `libs/lcsc/` libraries, and registers them in the sym/fp-lib-table so they
+   appear in the choosers — the user just reopens the project. Pass a whole
+   accepted BOM's LCSC list to import everything at once; pass `include` to
+   limit to e.g. symbol+footprint. Requires the kicad-lcsc-manager engine and
+   python3; if it reports the engine is missing, point the user to install it.
+   Do NOT import a `needs_review` IC/connector before its MPN + footprint are
+   confirmed.
 
 ## 5. Output format
 

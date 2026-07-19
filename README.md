@@ -153,6 +153,7 @@ Requires the `unzip` CLI and Node ≥ 22 (built-in `node:sqlite`). The server au
 | `analyze_kicad` | `.kicad_sch` / BOM CSV → grouped BOM lines (DNP and LCSC fields honored) |
 | `suggest_bom_parts` | Whole-BOM matching + ranking + cost (the core tool) |
 | `estimate_assembly_cost` | Component cost + loading fees for a chosen part list |
+| `import_part_to_kicad` | Fetch a part's symbol + footprint + 3D model into a KiCad project's libraries, registered and ready to place (via [kicad-lcsc-manager](https://github.com/hulryung/kicad-lcsc-manager) + python3) |
 
 ## Example run (real output)
 

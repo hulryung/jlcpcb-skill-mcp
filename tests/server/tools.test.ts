@@ -167,7 +167,7 @@ async function makeTmpDir(): Promise<string> {
 // ---------------------------------------------------------------------------
 
 describe("buildServer", () => {
-  it("registers exactly the 7 contract tools", async () => {
+  it("registers the contract tools", async () => {
     const client = await setup(new StubClient());
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
@@ -176,6 +176,7 @@ describe("buildServer", () => {
       "estimate_assembly_cost",
       "find_alternatives",
       "get_part",
+      "import_part_to_kicad",
       "search_parts",
       "search_passives",
       "suggest_bom_parts",

@@ -153,6 +153,7 @@ npm run db:update      # 약 830MB 다운로드, ~/.cache/jlcpcb-parts/에 ~4.9G
 | `analyze_kicad` | `.kicad_sch` / BOM CSV → BOM 라인 추출 (DNP·LCSC 필드 인식) |
 | `suggest_bom_parts` | BOM 전체 일괄 매칭 + 랭킹 + 비용 계산 (핵심 도구) |
 | `estimate_assembly_cost` | 선택된 부품 목록의 부품비 + 로딩피 산출 |
+| `import_part_to_kicad` | 부품의 심볼+풋프린트+3D 모델을 KiCad 프로젝트 라이브러리에 등록해 바로 배치 가능하게 ([kicad-lcsc-manager](https://github.com/hulryung/kicad-lcsc-manager) + python3 사용) |
 
 ## 실행 예시 (실제 출력)
 
