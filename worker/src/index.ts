@@ -15,6 +15,11 @@
  *   /part/<lcsc>            → Part | null   (proxies jlcsearch for fresh stock + preferred tier)
  *   /passive/<kind>/<lcsc>  → Part | null
  *   /categories            → { category, subcategory }[]
+ *
+ * D1 read budget (free plan: 5M rows read / day). The catalog is a snapshot, so
+ * every D1-backed GET is cached at the edge for a day, FTS candidates are capped
+ * before the join/sort, and nothing does a full-table scan on the request path.
+ * See worker/README.md "Read budget".
  */
 
 // Minimal ambient D1 types so the Worker needs no extra dependency to typecheck;
@@ -35,6 +40,27 @@ interface Env {
   /** Live jlcsearch base URL for get_part enrichment. Optional. */
   JLCSEARCH_URL?: string;
 }
+interface ExecutionContext {
+  waitUntil(p: Promise<unknown>): void;
+}
+interface CfCache {
+  match(req: Request): Promise<Response | undefined>;
+  put(req: Request, res: Response): Promise<void>;
+}
+
+/**
+ * Max FTS rowids pulled before joining `parts` and sorting by stock. Typical
+ * searches match a few hundred rows; a very common token ("10k", "resistor")
+ * matches tens of thousands, and without a cap every one is a billed D1 read
+ * even though we return ≤50. 20k bounds the worst query at ≈40k rows read
+ * (FTS rowids + joined parts) — under 1% of the free daily budget — while
+ * leaving ordinary queries untouched so stock ranking stays exact for them.
+ * Candidates come back in rowid order (not bm25): ranking by relevance would
+ * have to read the docsize shadow table for every match, which defeats the cap.
+ */
+const FTS_CANDIDATE_CAP = 20000;
+/** Catalog is a static snapshot; cache D1-backed responses at the edge for a day. */
+const CACHE_TTL_SECONDS = 86400;
 
 // --- Part shape (kept in sync with src/types.ts) --------------------------
 interface PriceBreak {
@@ -164,14 +190,15 @@ async function search(env: Env, url: URL): Promise<Part[]> {
   const ftsTokens = tokens.filter(canFts);
   const likeTokens = tokens.filter((t) => !canFts(t));
 
-  const where: string[] = [];
-  const binds: unknown[] = [];
-  let from = "parts p";
-  if (ftsTokens.length) {
-    from = "parts_fts f JOIN parts p ON p.rowid = f.rowid";
-    where.push("parts_fts MATCH ?");
-    binds.push(ftsTokens.map(ftsToken).join(" AND "));
-  }
+  // Every search must narrow through the FTS index first. Package/tier/LIKE-only
+  // searches used to scan all ~693k rows (one request = 14% of the daily free
+  // read budget), so they now return nothing instead of a full-table scan.
+  if (!ftsTokens.length) return [];
+
+  const where: string[] = [
+    `p.rowid IN (SELECT rowid FROM parts_fts WHERE parts_fts MATCH ? LIMIT ${FTS_CANDIDATE_CAP})`,
+  ];
+  const binds: unknown[] = [ftsTokens.map(ftsToken).join(" AND ")];
   for (const t of likeTokens) {
     where.push("(p.description LIKE ? OR p.mfr LIKE ?)");
     binds.push(`%${t}%`, `%${t}%`);
@@ -185,9 +212,8 @@ async function search(env: Env, url: URL): Promise<Part[]> {
     where.push("p.stock >= ?");
     binds.push(Math.floor(Number(minStock)));
   }
-  if (!where.length) return [];
   const sql =
-    `SELECT ${SELECT_COLS.replace(/(^|, )/g, "$1p.")} FROM ${from} WHERE ${where.join(" AND ")} ` +
+    `SELECT ${SELECT_COLS.replace(/(^|, )/g, "$1p.")} FROM parts p WHERE ${where.join(" AND ")} ` +
     `ORDER BY (p.library_type = 'Basic') DESC, p.stock DESC LIMIT ?`;
   binds.push(limit);
   const { results } = await env.DB.prepare(sql).bind(...binds).all<DbRow>();
@@ -223,14 +249,17 @@ async function searchPassive(
   const pkg = url.searchParams.get("package")?.trim();
   const limit = clampLimit(url.searchParams.get("limit"), 10);
   if (!variants.length) return [];
-  const where = ["parts_fts MATCH ?", "p.category = ?"];
+  const where = [
+    `p.rowid IN (SELECT rowid FROM parts_fts WHERE parts_fts MATCH ? LIMIT ${FTS_CANDIDATE_CAP})`,
+    "p.category = ?",
+  ];
   const binds: unknown[] = [variants.map(ftsToken).join(" OR "), category];
   if (pkg) {
     where.push("p.package = ? COLLATE NOCASE");
     binds.push(pkg);
   }
   const sql =
-    `SELECT ${SELECT_COLS.replace(/(^|, )/g, "$1p.")} FROM parts_fts f JOIN parts p ON p.rowid = f.rowid ` +
+    `SELECT ${SELECT_COLS.replace(/(^|, )/g, "$1p.")} FROM parts p ` +
     `WHERE ${where.join(" AND ")} ORDER BY (p.library_type = 'Basic') DESC, p.stock DESC LIMIT ?`;
   binds.push(Math.max(limit * 4, 40));
   const { results } = await env.DB.prepare(sql).bind(...binds).all<DbRow>();
@@ -298,32 +327,62 @@ async function categories(env: Env): Promise<{ category: string; subcategory: st
   return results;
 }
 
+/** Serve from the edge cache when possible; otherwise compute, cache for a day, return. */
+async function cached(
+  request: Request,
+  ctx: ExecutionContext,
+  compute: () => Promise<Response>,
+): Promise<Response> {
+  const cache = (caches as unknown as { default: CfCache }).default;
+  const key = new Request(request.url, { method: "GET" });
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const res = await compute();
+  if (res.status === 200) {
+    const toStore = new Response(res.body, res);
+    toStore.headers.set("cache-control", `public, max-age=${CACHE_TTL_SECONDS}`);
+    ctx.waitUntil(cache.put(key, toStore.clone()));
+    return toStore;
+  }
+  return res;
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "");
     try {
       if (path === "" || path === "/health") {
-        const n = await env.DB.prepare(`SELECT COUNT(*) c FROM parts`).first<number>("c");
-        return json({ ok: true, rows: n });
+        // One indexed row, not COUNT(*): on D1 a COUNT over `parts` is a full scan
+        // of ~693k billed reads per call, and health checks are called often.
+        const row = await env.DB.prepare(`SELECT lcsc FROM parts LIMIT 1`).first<string>("lcsc");
+        return json({ ok: row != null });
       }
-      if (path === "/search") return json(await search(env, url));
+      if (path === "/search") return cached(request, ctx, async () => json(await search(env, url)));
       if (path === "/resistors") {
         const ohms = Number(url.searchParams.get("ohms"));
-        return json(Number.isFinite(ohms) ? await searchPassive(env, url, "Resistors", resistanceVariants(ohms)) : []);
+        return cached(request, ctx, async () =>
+          json(Number.isFinite(ohms) ? await searchPassive(env, url, "Resistors", resistanceVariants(ohms)) : []),
+        );
       }
       if (path === "/capacitors") {
         const farads = Number(url.searchParams.get("farads"));
-        return json(Number.isFinite(farads) ? await searchPassive(env, url, "Capacitors", capacitanceVariants(farads)) : []);
+        return cached(request, ctx, async () =>
+          json(Number.isFinite(farads) ? await searchPassive(env, url, "Capacitors", capacitanceVariants(farads)) : []),
+        );
       }
-      if (path === "/categories") return json(await categories(env));
+      // DISTINCT over the whole table is a full scan; the category list changes
+      // only when the catalog is re-imported, so a day in cache is plenty.
+      if (path === "/categories") return cached(request, ctx, async () => json(await categories(env)));
       const partMatch = /^\/part\/(C?\d+)$/i.exec(path);
       if (partMatch) return json(await getPart(env, partMatch[1]));
       const passiveMatch = /^\/passive\/(resistor|capacitor)\/(C?\d+)$/i.exec(path);
       if (passiveMatch) {
-        const p = await dbPart(env, passiveMatch[2]);
-        const want = passiveMatch[1] === "resistor" ? "Resistors" : "Capacitors";
-        return json(p && p.category === want ? p : null);
+        return cached(request, ctx, async () => {
+          const p = await dbPart(env, passiveMatch[2]);
+          const want = passiveMatch[1] === "resistor" ? "Resistors" : "Capacitors";
+          return json(p && p.category === want ? p : null);
+        });
       }
       return json({ error: "not found" }, 404);
     } catch (e) {

@@ -14,6 +14,8 @@ by setting `JLCPCB_API_URL` (see below).
 `/part/<lcsc>` (proxies live jlcsearch for fresh stock + preferred tier) ·
 `/passive/<kind>/<lcsc>` · `/categories`
 
+`/health` returns `{ ok: true }` (no row count — see "Read budget").
+
 ```bash
 curl https://jlcpcb-parts-api.dkkang7484.workers.dev/health
 curl "https://jlcpcb-parts-api.dkkang7484.workers.dev/resistors?ohms=10000&package=0603&limit=3"
@@ -63,6 +65,30 @@ then the same execute/deploy against `parts-d1-slice.sql`.
 The build step strips `BEGIN TRANSACTION`/`COMMIT`/`PRAGMA` (D1 rejects them)
 and the FTS shadow tables from the parts dump; the FTS index is built
 server-side afterward from the imported content table.
+
+## Read budget (D1 free plan: 5M rows read / day)
+
+On 2026-10-24 one afternoon of agent-driven searches read 3.77M rows (75% of
+the daily budget) and Cloudflare sent a quota warning. Causes and the fixes now
+in `src/index.ts`:
+
+| Before | Rows read | Now |
+|---|---|---|
+| `/health` ran `SELECT COUNT(*)` | 692,802 per call (full scan) | `SELECT lcsc … LIMIT 1` → 1 row, returns `{ ok }` only |
+| FTS `MATCH … JOIN parts ORDER BY stock LIMIT n` | every matched row (5k–70k for "10k", "0603") | FTS rowids capped at 20,000 before the join (`FTS_CANDIDATE_CAP`) — worst query ≈40k reads |
+| `q` with no ≥3-char token (e.g. `q=1k`, package-only) fell back to `LIKE` / plain filter | full scan | returns `[]` — a search must narrow through FTS first |
+| `/categories` `SELECT DISTINCT` | full scan per call | edge-cached for a day |
+| every search hit D1 | — | `/search` `/resistors` `/capacitors` `/categories` `/passive/*` edge-cached 24h (catalog is a snapshot) |
+
+Trade-off: capped candidates come back in rowid order, so a token matching
+more than 20k rows may miss the highest-stock match. Typical queries match far
+fewer rows and are unaffected; for passives prefer `/resistors` / `/capacitors`.
+Note `package` is not an FTS column, so `q=10k 0603` finds nothing — pass
+`package=0603` instead (that was already true before these changes).
+
+Still open: `migrations/0001-indexes.sql` adds the `package`/`category`/`stock`
+indexes the build script creates locally but the live DB lacks. Building them
+costs ~2.1M reads once — apply on a quiet day.
 
 ## Refreshing the catalog
 
