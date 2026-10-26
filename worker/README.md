@@ -86,14 +86,19 @@ fewer rows and are unaffected; for passives prefer `/resistors` / `/capacitors`.
 Note `package` is not an FTS column, so `q=10k 0603` finds nothing — pass
 `package=0603` instead (that was already true before these changes).
 
-Still open: `migrations/0001-indexes.sql` adds the `package`/`category`/`stock`
-indexes the build script creates locally but the live DB lacks. Building them
-costs ~2.1M reads once — apply on a quiet day.
+`migrations/0001-indexes.sql` adds the `package`/`category`/`stock` indexes the
+build script creates locally but the live DB lacked. Applied 2026-10-26: it cost
+4.17M rows read **and 2.08M rows written** — every index entry is a billed
+write, so it blew through the free plan's 100k writes/day and Cloudflare blocked
+writes until the next 00:00 UTC reset. The API is read-only, so nothing broke,
+but don't re-run it (it is `IF NOT EXISTS` anyway) and budget writes, not just
+reads, for any future schema change.
 
 ## Refreshing the catalog
 
-Re-run steps 1 and 3. On the free plan (~3M writes/month) a full re-import is
-~1.4M writes, so a couple of refreshes a month fits — the catalog changes
+Re-run steps 1 and 3. A full re-import is ~1.4M rows written (more with the
+three indexes), far over the free plan's 100k writes/day, so expect writes to be
+blocked for the rest of that UTC day — reads keep working. The catalog changes
 slowly, and `/part/<lcsc>` already proxies live jlcsearch for fresh stock and
 the preferred-tier flag on the parts you actually pick.
 
